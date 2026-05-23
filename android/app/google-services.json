@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "397800132885",
+    "project_id": "tapzy-nfc",
+    "storage_bucket": "tapzy-nfc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:397800132885:android:18c163b04ec2ddc170991c",
+        "android_client_info": {
+          "package_name": "com.tapzy.android.abc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANmz1vr9VcpBzi8-1Z21M7y9ZjWdfb8Ak"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
