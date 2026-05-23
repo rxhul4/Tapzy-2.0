@@ -58,10 +58,6 @@
 		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>
-	<key>com.apple.developer.associated-domains</key>
-    <array>
-        <string>applinks:example.com</string>
-    </array>
 	<key>com.apple.developer.nfc.readersession.felica.systemcodes</key>
 	<array>
 		<string>0003</string>
