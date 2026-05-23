@@ -34,6 +34,8 @@
     <string>Tapzy uses contacts to help users connect, share digital business cards, and save professional networking information.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>App needs access to photo lib for profile images</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
