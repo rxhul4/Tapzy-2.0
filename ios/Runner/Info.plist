@@ -30,6 +30,8 @@
 	<string>Privacy - NFC Scan Usage Description</string>
 	<key>NSCameraUsageDescription</key>
 	<string>To capture profile photo please grant camera access</string>
+	<key>NSContactsUsageDescription</key>
+    <string>Tapzy uses contacts to help users connect, share digital business cards, and save professional networking information.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>App needs access to photo lib for profile images</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
