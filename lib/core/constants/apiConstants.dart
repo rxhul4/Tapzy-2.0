@@ -1,6 +1,6 @@
 class ApiConstants{
-  static String baseUrl = "https://dev.tapzy.in/api"; //QA URL
-  // static String baseUrl = "https://profile.tapzy.in/api"; // Live URL
+  // static String baseUrl = "https://dev.tapzy.in/api"; //QA URL
+  static String baseUrl = "https://profile.tapzy.in/api"; // Live URL
   static String loginApi = "$baseUrl/login";
   static String verifyOtp = "$baseUrl/verifyOtp";
   static String deleteCardApi = "$baseUrl/delete_digital_card";
