@@ -26,7 +26,7 @@ class CommonDialog extends StatefulWidget {
 }
 
 class _CommonDialogState extends State<CommonDialog> {
-  final List<IconData> icons = [
+  final List<FaIconData> icons = [
     FontAwesomeIcons.briefcase,
     FontAwesomeIcons.solidUser,
     FontAwesomeIcons.instagram,

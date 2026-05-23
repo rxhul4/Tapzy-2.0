@@ -68,6 +68,7 @@ class GlassUi {
 
   static Widget errorText(String message) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const Icon(Icons.error_outline_rounded,
             color: AppColors.colorError, size: 15),
