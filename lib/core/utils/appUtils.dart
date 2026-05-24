@@ -226,7 +226,7 @@ class AppUtils {
 
   static bool socialTypeUsesUsernameOnly(String type) {
     final t = type.toLowerCase();
-    return t != 'personal';
+    return t != 'personal' && t != 'youtube';
   }
 
   static String socialUsernameHint(String type) {
@@ -236,7 +236,7 @@ class AppUtils {
       case 'linkedin':
         return 'e.g. johndoe';
       case 'youtube':
-        return 'e.g. channelname';
+        return 'e.g. youtube.com/c/channel or full URL';
       case 'spotify':
         return 'e.g. spotifyusername';
       case 'personal':
@@ -268,11 +268,6 @@ class AppUtils {
 
     if (lowerType == 'instagram') {
       final match = RegExp(r'(?:instagram\.com/|ig:|insta:)\s*([a-zA-Z0-9_.]+)').firstMatch(cleaned);
-      if (match != null && match.groupCount >= 1) {
-        return '@${match.group(1)}';
-      }
-    } else if (lowerType == 'youtube') {
-      final match = RegExp(r'(?:youtube\.com/c/|youtube\.com/channel/|youtube\.com/user/|youtube\.com/@)\s*([a-zA-Z0-9_-]+)').firstMatch(cleaned);
       if (match != null && match.groupCount >= 1) {
         return '@${match.group(1)}';
       }

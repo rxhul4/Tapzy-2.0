@@ -87,6 +87,7 @@ class CardData {
   String? qrImage;
   String? cardLabel;
   int? isImageSet;
+  String? companyLogo;
 
   CardData(
       {this.id,
@@ -97,7 +98,8 @@ class CardData {
         this.isActive,
         this.qrImage,
         this.cardLabel,
-        this.isImageSet
+        this.isImageSet,
+        this.companyLogo
       });
 
   CardData.fromJson(Map<String, dynamic> json) {
@@ -110,6 +112,7 @@ class CardData {
     qrImage = json['qr_image'];
     cardLabel = json['card_label'];
     isImageSet = json['is_image_set'];
+    companyLogo = json['company_logo'];
   }
 
   Map<String, dynamic> toJson() {
@@ -123,6 +126,7 @@ class CardData {
     data['qr_image'] = this.qrImage;
     data['card_label'] = this.cardLabel;
     data['is_image_set'] = this.isImageSet;
+    data['company_logo'] = this.companyLogo;
     return data;
   }
 }

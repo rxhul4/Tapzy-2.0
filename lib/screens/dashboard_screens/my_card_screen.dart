@@ -131,10 +131,12 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
 
   addListenerToPageController() {
     _pageController.addListener(() {
-      setState(() {
-        print("fffffff");
-        _currentIndex = _pageController.page?.round() ?? 0;
-      });
+      final nextPage = _pageController.page?.round() ?? 0;
+      if (_currentIndex != nextPage) {
+        setState(() {
+          _currentIndex = nextPage;
+        });
+      }
     });
   }
 
@@ -209,12 +211,24 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
 
         if (barcodeScanRes != null && barcodeScanRes.isNotEmpty) {
           print("result : $barcodeScanRes");
-          var uId = barcodeScanRes.split('/').last;
+          if (!barcodeScanRes.contains('/business/')) {
+            AppUtils.showSnackBarWithColor(
+              context: context,
+              message: 'Invalid QR Code. Please scan a valid Tapzy card QR.',
+              giveColor: Colors.redAccent,
+            );
+            return;
+          }
+          var cleanedRes = barcodeScanRes.trim();
+          if (cleanedRes.endsWith('/')) {
+            cleanedRes = cleanedRes.substring(0, cleanedRes.length - 1);
+          }
+          var uId = cleanedRes.split('/').last;
           print("result : ${uId}");
           callLinkCardApi(
               cardType: cardType,
               postMdl1: postMdl1,
-              cardLink: barcodeScanRes,
+              cardLink: cleanedRes,
               cardNo: uId,
               profileID: profileID);
         }
@@ -247,12 +261,54 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
   }
 
   void _ndefWrite(String url, ctxSheet, ctxBuild) {
-    nfcWritingString.value = "NFC write not available";
-    print("NFC write feature requires additional setup");
-    AppUtils.showSnackBarWithColor(
-        context: ctxBuild,
-        message: "NFC write feature not available",
-        giveColor: Colors.redAccent);
+    if (url.isEmpty) {
+      AppUtils.showSnackBarWithColor(
+          context: ctxBuild,
+          message: "URL is empty",
+          giveColor: Colors.redAccent);
+      return;
+    }
+    
+    nfcWritingString.value = "Scanning NFC tag...";
+    
+    NfcManager.instance.startSession(
+      onDiscovered: (NfcTag tag) async {
+        var ndef = Ndef.from(tag);
+        if (ndef == null || !ndef.isWritable) {
+          nfcWritingString.value = "NFC Write Failed";
+          AppUtils.showSnackBarWithColor(
+              context: ctxBuild,
+              message: "Tag is not NDEF writable",
+              giveColor: Colors.redAccent);
+          NfcManager.instance.stopSession(errorMessage: "Tag not writable");
+          return;
+        }
+
+        NdefMessage message = NdefMessage([
+          NdefRecord.createUri(Uri.parse(url)),
+        ]);
+
+        try {
+          await ndef.write(message);
+          nfcWritingString.value = "Write Successful!";
+          AppUtils.showSnackBarWithColor(
+              context: ctxBuild,
+              message: "Write successful!",
+              giveColor: AppColors.colorSuccess);
+          NfcManager.instance.stopSession();
+          if (Navigator.canPop(ctxSheet)) {
+            Navigator.pop(ctxSheet);
+          }
+        } catch (e) {
+          nfcWritingString.value = "NFC Write Failed";
+          AppUtils.showSnackBarWithColor(
+              context: ctxBuild,
+              message: "Failed to write to NFC: $e",
+              giveColor: Colors.redAccent);
+          NfcManager.instance.stopSession(errorMessage: "Write failed");
+        }
+      },
+    );
   }
 
   @override
@@ -494,7 +550,7 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                                                                       bottom: -2,
                                                                       right: -2,
                                                                       child: Container(
-                                                                        padding: const EdgeInsets.all(5),
+                                                                        padding: EdgeInsets.all(cardType.toLowerCase() == 'business' && cardItem?.companyLogo != null && cardItem!.companyLogo!.isNotEmpty ? 0 : 5),
                                                                         decoration: BoxDecoration(
                                                                           color: AppColors.colorMainBlack,
                                                                           shape: BoxShape.circle,
@@ -507,10 +563,25 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                                                                             ),
                                                                           ],
                                                                         ),
-                                                                        child: Image.asset(
-                                                                          AppUtils.setIconByType(cardType),
-                                                                          width: 16,
-                                                                          height: 16,
+                                                                        width: 26,
+                                                                        height: 26,
+                                                                        child: ClipOval(
+                                                                          child: cardType.toLowerCase() == 'business' && cardItem?.companyLogo != null && cardItem!.companyLogo!.isNotEmpty
+                                                                              ? CachedNetworkImage(
+                                                                                  imageUrl: cardItem.companyLogo!,
+                                                                                  fit: BoxFit.cover,
+                                                                                  placeholder: (context, url) => const CircularProgressIndicator(strokeWidth: 1),
+                                                                                  errorWidget: (context, url, error) => Image.asset(
+                                                                                    AppUtils.setIconByType(cardType),
+                                                                                    width: 16,
+                                                                                    height: 16,
+                                                                                  ),
+                                                                                )
+                                                                              : Image.asset(
+                                                                                  AppUtils.setIconByType(cardType),
+                                                                                  width: 16,
+                                                                                  height: 16,
+                                                                                ),
                                                                         ),
                                                                       ),
                                                                     ),
@@ -1453,32 +1524,114 @@ class _QRScannerScreenState extends State<_QRScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final double scanAreaSize = 250.0;
+
     return SafeArea(
       child: Scaffold(
-      backgroundColor: AppColors.colorMainBlack,
-      appBar: AppBar(
-        title: const Text('Scan QR Code'),
-        backgroundColor: AppColors.colorPurpleLight,
-        foregroundColor: AppColors.colorOffWhite,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.flash_on),
-            onPressed: () => _controller.toggleTorch(),
-          ),
-        ],
+        backgroundColor: AppColors.colorMainBlack,
+        appBar: AppBar(
+          title: const Text('Scan QR Code'),
+          backgroundColor: AppColors.colorPurpleLight,
+          foregroundColor: AppColors.colorOffWhite,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.flash_on),
+              onPressed: () => _controller.toggleTorch(),
+            ),
+          ],
+        ),
+        body: Stack(
+          children: [
+            MobileScanner(
+              controller: _controller,
+              onDetect: (capture) {
+                if (_hasScanned) return;
+                final List<Barcode> barcodes = capture.barcodes;
+                if (barcodes.isNotEmpty && barcodes.first.rawValue != null) {
+                  _hasScanned = true;
+                  Navigator.pop(context, barcodes.first.rawValue);
+                }
+              },
+            ),
+            CustomPaint(
+              size: Size.infinite,
+              painter: QRScannerOverlayPainter(scanAreaSize: scanAreaSize),
+            ),
+            Align(
+              alignment: Alignment.center,
+              child: Container(
+                width: scanAreaSize,
+                height: scanAreaSize,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppColors.colorPurple,
+                    width: 2.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.colorPurple.withOpacity(0.2),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: size.height * 0.5 + (scanAreaSize / 2) + 24,
+              left: 20,
+              right: 20,
+              child: const Center(
+                child: Text(
+                  'Align QR Code within the frame to scan',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-      body: MobileScanner(
-        controller: _controller,
-        onDetect: (capture) {
-          if (_hasScanned) return;
-          final List<Barcode> barcodes = capture.barcodes;
-          if (barcodes.isNotEmpty && barcodes.first.rawValue != null) {
-            _hasScanned = true;
-            Navigator.pop(context, barcodes.first.rawValue);
-          }
-        },
-      ),
-    ),
     );
+  }
+}
+
+class QRScannerOverlayPainter extends CustomPainter {
+  final double scanAreaSize;
+
+  const QRScannerOverlayPainter({required this.scanAreaSize});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final backgroundPaint = Paint()
+      ..color = Colors.black.withOpacity(0.65)
+      ..style = PaintingStyle.fill;
+
+    final cutoutRect = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: Offset(size.width / 2, size.height / 2),
+        width: scanAreaSize,
+        height: scanAreaSize,
+      ),
+      const Radius.circular(16),
+    );
+
+    final backgroundPath = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+    final cutoutPath = Path()..addRRect(cutoutRect);
+
+    final path = Path.combine(PathOperation.difference, backgroundPath, cutoutPath);
+    canvas.drawPath(path, backgroundPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant QRScannerOverlayPainter oldDelegate) {
+    return oldDelegate.scanAreaSize != scanAreaSize;
   }
 }
