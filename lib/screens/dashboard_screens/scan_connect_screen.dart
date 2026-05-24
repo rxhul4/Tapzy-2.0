@@ -950,7 +950,8 @@ class _ContactCard extends StatelessWidget {
       return;
     }
     try {
-      if (!await FlutterContacts.requestPermission()) {
+      final status = await FlutterContacts.permissions.request(PermissionType.readWrite);
+      if (status != PermissionStatus.granted) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
               content: Text('Contacts permission denied'),
@@ -959,18 +960,16 @@ class _ContactCard extends StatelessWidget {
         return;
       }
       final c = contact;
-      final nc = Contact()
-        ..name = Name(first: c.name)
-        ..phones = c.phone != null ? [Phone(c.phone!)] : []
-        ..emails = c.email != null ? [Email(c.email!)] : []
-        ..organizations = (c.company != null || c.designation != null)
-            ? [
-                Organization(
-                    company: c.company ?? '', title: c.designation ?? '')
-              ]
-            : []
-        ..addresses = c.address != null ? [Address(c.address!)] : [];
-      await FlutterContacts.insertContact(nc);
+      final nc = Contact(
+        name: Name(first: c.name),
+        phones: c.phone != null ? [Phone(number: c.phone!)] : [],
+        emails: c.email != null ? [Email(address: c.email!)] : [],
+        organizations: (c.company != null || c.designation != null)
+            ? [Organization(name: c.company ?? '', jobTitle: c.designation ?? '')]
+            : [],
+        addresses: c.address != null ? [Address(street: c.address!)] : [],
+      );
+      await FlutterContacts.create(nc);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('${c.name} saved'),
