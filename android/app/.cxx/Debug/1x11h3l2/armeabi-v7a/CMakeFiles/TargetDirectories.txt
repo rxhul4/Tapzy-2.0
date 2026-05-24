@@ -1,0 +1,2 @@
+D:/completed projects/tapzy_kunal2/android/app/.cxx/Debug/1x11h3l2/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/completed projects/tapzy_kunal2/android/app/.cxx/Debug/1x11h3l2/armeabi-v7a/CMakeFiles/rebuild_cache.dir
