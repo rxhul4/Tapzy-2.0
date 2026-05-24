@@ -367,14 +367,14 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                                     blur: 18,
                                     opacity: 0.04,
                                     padding: EdgeInsets.zero,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.colorPurple
-                                            .withOpacity(0.2),
-                                        blurRadius: 28,
-                                        offset: const Offset(0, 10),
-                                      ),
-                                    ],
+                                    // boxShadow: [
+                                    //   BoxShadow(
+                                    //     color: AppColors.colorPurple
+                                    //         .withOpacity(0.2),
+                                    //     blurRadius: 28,
+                                    //     offset: const Offset(0, 10),
+                                    //   ),
+                                    // ],
                                     child: ClipRRect(
                                     borderRadius: BorderRadius.circular(20),
                                     child: AppUtils.commonContainer(
