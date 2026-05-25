@@ -106,6 +106,7 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
         // isDisableCardList?.addAll(getDigitalCardModel?.data?.cardData?.where((element) => element.isActive == 0) ?? []);
         // print("dataaaaaaaaaaa ${isDisableCardList}");
         showNoData.value = false;
+        _updateActiveNfcUrl(_currentIndex);
       } else {
         showNoData.value = true;
       }
@@ -136,8 +137,28 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
         setState(() {
           _currentIndex = nextPage;
         });
+        _updateActiveNfcUrl(nextPage);
       }
     });
+  }
+
+  Future<void> _updateActiveNfcUrl(int index) async {
+    try {
+      final cardList = getDigitalCardModel?.data?.cardData
+              ?.where((element) => element.isActive == 1)
+              .toList() ??
+          [];
+      if (cardList.isNotEmpty && index < cardList.length) {
+        final cardUrl = cardList[index].qrImage ?? '';
+        if (cardUrl.isNotEmpty) {
+          await PreferenceHelper.load();
+          await PreferenceHelper.setString("active_nfc_url", cardUrl);
+          print("Saved active NFC URL to preferences: $cardUrl");
+        }
+      }
+    } catch (e) {
+      print("Error saving active NFC URL: $e");
+    }
   }
 
   callDisableEnableApi({
@@ -268,9 +289,9 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
           giveColor: Colors.redAccent);
       return;
     }
-    
+
     nfcWritingString.value = "Scanning NFC tag...";
-    
+
     NfcManager.instance.startSession(
       onDiscovered: (NfcTag tag) async {
         var ndef = Ndef.from(tag);
@@ -467,9 +488,9 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                                                           final cardImage = cardItem?.cardImage;
                                                           final isImageSet = cardItem?.isImageSet == 1;
                                                           final field1 = cardItem?.field1 ?? '';
-                                                          
+
                                                           final displayField = AppUtils.formatSocialUsername(cardType, field1);
-                                                          
+
                                                           return Column(
                                                             mainAxisAlignment:
                                                                 MainAxisAlignment.start,
@@ -725,83 +746,94 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                                                                       showModalBottomSheet(
                                                                         isScrollControlled:
                                                                         true,
-                                                                        shape:
-                                                                        RoundedRectangleBorder(
-                                                                          borderRadius: BorderRadius.only(
-                                                                              topRight:
-                                                                              Radius.circular(20),
-                                                                              topLeft: Radius.circular(20)),
-                                                                        ),
-                                                                        backgroundColor:
-                                                                        AppColors
-                                                                            .colorMainBlack,
+                                                                        backgroundColor: Colors.transparent,
+                                                                        elevation: 0,
                                                                         context:
                                                                         context,
                                                                         builder:
                                                                             (BuildContext
                                                                         sheetCtx) {
-                                                                          return SingleChildScrollView(
-                                                                            child:
-                                                                            Column(
-                                                                              children: [
-                                                                                Divider(color: AppColors.colorGrey, thickness: 1.5, endIndent: 100, indent: 100, height: 20),
-                                                                                AppUtils.commonSizedBox(height: 15),
-                                                                                AppUtils.commonTextWidget(textColor: AppColors.colorWhite, letterSpacing: 1, fontWeight: FontWeight.w700, fontFamily: StringUtils.fontFamilyHeading, text: "Write to NFC", fontSize: AppConstants.sixteen),
-                                                                                AppUtils.commonSizedBox(height: 15),
-                                                                                Divider(color: AppColors.colorPurple.withOpacity(0.5), indent: 0, endIndent: 0),
-                                                                                AppUtils.commonSizedBox(height: 15),
-                                                                                AppUtils.commonTextWidget(margin: AppUtils.edgeInsetsOnly(right: 20, left: 20), textColor: AppColors.colorWhite.withOpacity(0.8), letterSpacing: 1, textAlign: TextAlign.center, fontWeight: FontWeight.w500, fontFamily: StringUtils.fontFamilyHeading, text: "Hold the Tag to the back of your phone", fontSize: AppConstants.fourteen),
-                                                                                AppUtils.commonSizedBox(height: 20),
-                                                                                AppUtils.commonContainer(
-                                                                                  padding: AppUtils.edgeInsetsOnly(top: 25, bottom: 25, right: 25, left: 25),
-                                                                                  decoration: AppUtils.commonBoxDecoration(shape: BoxShape.circle, color: AppColors.colorGreyLatest, border: Border.all(color: AppColors.colorPurpleLight.withOpacity(0.5))),
-                                                                                  child: Image.asset(
-                                                                                    "assets/images/nfc.png",
-                                                                                    fit: BoxFit.cover,
-                                                                                    height: 75,
-                                                                                    width: 75,
-                                                                                    color: AppColors.colorPurpleLight,
+                                                                          return ClipRRect(
+                                                                            borderRadius: const BorderRadius.only(
+                                                                              topRight: Radius.circular(24),
+                                                                              topLeft: Radius.circular(24),
+                                                                            ),
+                                                                            child: BackdropFilter(
+                                                                              filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                                                                              child: Container(
+                                                                                padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+                                                                                decoration: BoxDecoration(
+                                                                                  color: AppColors.colorMainBlack.withOpacity(0.55),
+                                                                                  borderRadius: const BorderRadius.only(
+                                                                                    topRight: Radius.circular(24),
+                                                                                    topLeft: Radius.circular(24),
+                                                                                  ),
+                                                                                  border: Border(
+                                                                                    top: BorderSide(color: Colors.white.withOpacity(0.15), width: 1.2),
+                                                                                    left: BorderSide(color: Colors.white.withOpacity(0.08), width: 0.8),
+                                                                                    right: BorderSide(color: Colors.white.withOpacity(0.08), width: 0.8),
                                                                                   ),
                                                                                 ),
-                                                                                AppUtils.commonSizedBox(height: 15),
-                                                                                AppUtils.commonTextWidget(
-                                                                                  margin: AppUtils.edgeInsetsOnly(right: 20, left: 20),
-                                                                                  textColor: AppColors.colorWhite.withOpacity(0.8),
-                                                                                  letterSpacing: 1,
-                                                                                  textAlign: TextAlign.center,
-                                                                                  fontWeight: FontWeight.w500,
-                                                                                  fontFamily: StringUtils.fontFamilyHeading,
-                                                                                  text: "URL to be added on the tag",
+                                                                                child: Column(
+                                                                                  mainAxisSize: MainAxisSize.min,
+                                                                                  children: [
+                                                                                    Divider(color: Colors.white.withOpacity(0.15), thickness: 3.5, endIndent: 150, indent: 150, height: 10),
+                                                                                    AppUtils.commonSizedBox(height: 15),
+                                                                                    AppUtils.commonTextWidget(textColor: AppColors.colorWhite, letterSpacing: 1, fontWeight: FontWeight.w700, fontFamily: StringUtils.fontFamilyHeading, text: "Write to NFC", fontSize: AppConstants.sixteen),
+                                                                                    AppUtils.commonSizedBox(height: 15),
+                                                                                    Divider(color: AppColors.colorPurple.withOpacity(0.3), indent: 0, endIndent: 0),
+                                                                                    AppUtils.commonSizedBox(height: 15),
+                                                                                    AppUtils.commonTextWidget(margin: AppUtils.edgeInsetsOnly(right: 20, left: 20), textColor: AppColors.colorWhite.withOpacity(0.8), letterSpacing: 1, textAlign: TextAlign.center, fontWeight: FontWeight.w500, fontFamily: StringUtils.fontFamilyHeading, text: "Hold the Tag to the back of your phone", fontSize: AppConstants.fourteen),
+                                                                                    AppUtils.commonSizedBox(height: 20),
+                                                                                    AppUtils.commonContainer(
+                                                                                      padding: AppUtils.edgeInsetsOnly(top: 25, bottom: 25, right: 25, left: 25),
+                                                                                      decoration: AppUtils.commonBoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.04), border: Border.all(color: AppColors.colorPurpleLight.withOpacity(0.35))),
+                                                                                      child: Image.asset(
+                                                                                        "assets/images/nfc.png",
+                                                                                        fit: BoxFit.cover,
+                                                                                        height: 75,
+                                                                                        width: 75,
+                                                                                        color: AppColors.colorPurpleLight,
+                                                                                      ),
+                                                                                    ),
+                                                                                    AppUtils.commonSizedBox(height: 15),
+                                                                                    AppUtils.commonTextWidget(
+                                                                                      margin: AppUtils.edgeInsetsOnly(right: 20, left: 20),
+                                                                                      textColor: AppColors.colorWhite.withOpacity(0.8),
+                                                                                      letterSpacing: 1,
+                                                                                      textAlign: TextAlign.center,
+                                                                                      fontWeight: FontWeight.w500,
+                                                                                      fontFamily: StringUtils.fontFamilyHeading,
+                                                                                      text: "URL to be added on the tag",
+                                                                                    ),
+                                                                                    AppUtils.commonSizedBox(height: 10),
+                                                                                    AppUtils.commonTextWidget(
+                                                                                      margin: AppUtils.edgeInsetsOnly(right: 20, left: 20),
+                                                                                      textColor: AppColors.colorPurpleLight,
+                                                                                      letterSpacing: 0.5,
+                                                                                      textAlign: TextAlign.center,
+                                                                                      fontWeight: FontWeight.w600,
+                                                                                      fontFamily: StringUtils.fontFamilyHeading,
+                                                                                      text: getDigitalCardModel?.data?.cardData?.where((element) => element.isActive == 1).toList()[index].qrImage ?? '',
+                                                                                    ),
+                                                                                    AppUtils.commonSizedBox(height: 20),
+                                                                                    ValueListenableBuilder<String>(
+                                                                                      builder: (BuildContext context, String value, Widget? child) {
+                                                                                        return AppUtils.commonElevatedBtn(
+                                                                                            width: double.infinity,
+                                                                                            onPressed: () {
+                                                                                              _ndefWrite(getDigitalCardModel?.data?.cardData?.where((element) => element.isActive == 1).toList()[index].qrImage ?? '', sheetCtx, context);
+                                                                                            },
+                                                                                            height: 44,
+                                                                                            text: value,
+                                                                                            gradient: AppColors.gradientPurple);
+                                                                                      },
+                                                                                      valueListenable: nfcWritingString,
+                                                                                    ),
+                                                                                    AppUtils.commonSizedBox(height: 5),
+                                                                                  ],
                                                                                 ),
-                                                                                AppUtils.commonSizedBox(height: 10),
-                                                                                AppUtils.commonTextWidget(
-                                                                                  margin: AppUtils.edgeInsetsOnly(right: 20, left: 20),
-                                                                                  textColor: AppColors.colorPurpleLight,
-                                                                                  letterSpacing: 1,
-                                                                                  textAlign: TextAlign.center,
-                                                                                  fontWeight: FontWeight.w500,
-                                                                                  fontFamily: StringUtils.fontFamilyHeading,
-                                                                                  text: getDigitalCardModel?.data?.cardData?.where((element) => element.isActive == 1).toList()[index].qrImage ?? '',
-                                                                                ),
-                                                                                AppUtils.commonSizedBox(height: 10),
-                                                                                ValueListenableBuilder<String>(
-                                                                                  builder: (BuildContext context, String value, Widget? child) {
-                                                                                    return AppUtils.commonElevatedBtn(
-                                                                                        width: double.infinity,
-                                                                                        onPressed: () {
-                                                                                          _ndefWrite(getDigitalCardModel?.data?.cardData?.where((element) => element.isActive == 1).toList()[index].qrImage ?? '', sheetCtx, context);
-                                                                                        },
-                                                                                        height: 40,
-                                                                                        text: value,
-                                                                                        gradient: LinearGradient(colors: [
-                                                                                          AppColors.colorPurple.withOpacity(0.8),
-                                                                                          AppColors.colorPurpleLight.withOpacity(0.8),
-                                                                                        ]));
-                                                                                  },
-                                                                                  valueListenable: nfcWritingString,
-                                                                                ),
-                                                                                AppUtils.commonSizedBox(height: 5),
-                                                                              ],
+                                                                              ),
                                                                             ),
                                                                           );
                                                                         },
@@ -1191,111 +1223,122 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
 
     if (imageUrl1 != null) {
       showModalBottomSheet(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-              topRight: Radius.circular(20), topLeft: Radius.circular(20)),
-        ),
-        backgroundColor: AppColors.colorMainBlack,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         context: context,
         builder: (BuildContext sheetCtx) {
-          return Column(
-            children: [
-              Divider(
-                  color: AppColors.colorGrey,
-                  thickness: 1.5,
-                  endIndent: 100,
-                  indent: 100,
-                  height: 20),
-              AppUtils.commonSizedBox(height: 20),
-              AppUtils.commonTextWidget(
-                  margin: AppUtils.edgeInsetsOnly(right: 20, left: 20),
-                  textColor: AppColors.colorWhite.withOpacity(0.8),
-                  letterSpacing: 1,
-                  textAlign: TextAlign.center,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: StringUtils.fontFamilyHeading,
-                  text: "Scan and share your card \nwith a QR code",
-                  fontSize: AppConstants.sixteen),
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AppUtils.commonContainer(
+          return ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topRight: Radius.circular(24),
+              topLeft: Radius.circular(24),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+                decoration: BoxDecoration(
+                  color: AppColors.colorMainBlack.withOpacity(0.55),
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(24),
+                    topLeft: Radius.circular(24),
+                  ),
+                  border: Border(
+                    top: BorderSide(color: Colors.white.withOpacity(0.15), width: 1.2),
+                    left: BorderSide(color: Colors.white.withOpacity(0.08), width: 0.8),
+                    right: BorderSide(color: Colors.white.withOpacity(0.08), width: 0.8),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Divider(color: Colors.white.withOpacity(0.15), thickness: 3.5, endIndent: 150, indent: 150, height: 10),
+                    AppUtils.commonSizedBox(height: 20),
+                    AppUtils.commonTextWidget(
+                        margin: AppUtils.edgeInsetsOnly(right: 20, left: 20),
+                        textColor: AppColors.colorWhite.withOpacity(0.8),
+                        letterSpacing: 1,
+                        textAlign: TextAlign.center,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: StringUtils.fontFamilyHeading,
+                        text: "Scan and share your card
+with a QR code",
+                        fontSize: AppConstants.sixteen),
+                    AppUtils.commonSizedBox(height: 24),
+                    Center(
+                      child: AppUtils.commonContainer(
                         decoration: AppUtils.commonBoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                AppColors.colorPurple.withOpacity(0.5),
-                                AppColors.colorPurple.withOpacity(0.5),
+                                AppColors.colorPurple.withOpacity(0.25),
+                                AppColors.colorPurpleLight.withOpacity(0.15),
                               ]),
+                          border: Border.all(color: AppColors.colorPurpleLight.withOpacity(0.3), width: 1),
                         ),
+                        padding: const EdgeInsets.all(12),
                         child: QrImageView(
                           data: imageUrl1,
                           eyeStyle: QrEyeStyle(
                               eyeShape: QrEyeShape.square,
-                              color: AppColors.colorWhite.withOpacity(0.8)),
+                              color: AppColors.colorWhite.withOpacity(0.9)),
                           dataModuleStyle: QrDataModuleStyle(
                               dataModuleShape: QrDataModuleShape.square,
-                              color: AppColors.colorWhite.withOpacity(0.8)),
+                              color: AppColors.colorWhite.withOpacity(0.9)),
                           backgroundColor: AppColors.colorTransparent,
                           version: QrVersions.auto,
                           size: 180.0,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              AppUtils.commonSizedBox(height: 20),
-              AppUtils.commonTextWidget(
-                  margin: AppUtils.edgeInsetsOnly(right: 20, left: 20),
-                  textColor: AppColors.colorWhite.withOpacity(0.5),
-                  letterSpacing: 0.5,
-                  textAlign: TextAlign.center,
-                  fontWeight: FontWeight.w400,
-                  fontFamily: StringUtils.fontFamilyHeading,
-                  text: "Your Digital Profile Link:",
-                  fontSize: AppConstants.twelve),
-              AppUtils.commonSizedBox(height: 8),
-              AppUtils.commonContainer(
-                height: 40,
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      AppUtils.commonInkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: () {
-                          _launchInBrowser(Uri.parse(getDigitalCardModel
-                                  ?.data?.cardData
+                    ),
+                    AppUtils.commonSizedBox(height: 24),
+                    AppUtils.commonTextWidget(
+                        margin: AppUtils.edgeInsetsOnly(right: 20, left: 20),
+                        textColor: AppColors.colorWhite.withOpacity(0.5),
+                        letterSpacing: 0.5,
+                        textAlign: TextAlign.center,
+                        fontWeight: FontWeight.w400,
+                        fontFamily: StringUtils.fontFamilyHeading,
+                        text: "Your Digital Profile Link:",
+                        fontSize: AppConstants.twelve),
+                    AppUtils.commonSizedBox(height: 8),
+                    AppUtils.commonInkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        _launchInBrowser(Uri.parse(getDigitalCardModel
+                                ?.data?.cardData
+                                ?.where((element) => element.isActive == 1)
+                                .toList()[index]
+                                .qrImage ??
+                            ''));
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                        child: Text(
+                          getDigitalCardModel?.data?.cardData
                                   ?.where((element) => element.isActive == 1)
                                   .toList()[index]
                                   .qrImage ??
-                              ''));
-                        },
-                        child: AppUtils.commonTextWidget(
-                            margin:
-                                AppUtils.edgeInsetsOnly(right: 20, left: 20),
-                            textColor: AppColors.colorPurpleLight,
+                              '',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: AppColors.colorPurpleLight,
                             letterSpacing: 0.5,
-                            textAlign: TextAlign.center,
                             fontWeight: FontWeight.w600,
                             fontFamily: StringUtils.fontFamilyHeading,
-                            text: getDigitalCardModel?.data?.cardData
-                                    ?.where((element) => element.isActive == 1)
-                                    .toList()[index]
-                                    .qrImage ??
-                                '',
-                            fontSize: AppConstants.fourteen),
+                            fontSize: AppConstants.fourteen,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                    AppUtils.commonSizedBox(height: 16),
+                  ],
                 ),
               ),
-              AppUtils.commonSizedBox(height: 30),
-            ],
+            ),
           );
         },
       );

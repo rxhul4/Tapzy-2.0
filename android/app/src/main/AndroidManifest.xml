@@ -35,5 +35,18 @@
         <meta-data
             android:name="android.supports_16kb_page_size"
             android:value="true" />
+
+        <!-- NFC Host Card Emulation Service -->
+        <service
+            android:name=".TapzyHceService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/apdu_service" />
+        </service>
     </application>
 </manifest>
