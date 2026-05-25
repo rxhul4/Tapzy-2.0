@@ -222,7 +222,10 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
       String? profileID}) async {
     var status1 = await Permission.camera.request();
     if (status1.isDenied || status1.isPermanentlyDenied) {
-      AppUtils.openAppSettingsPermissionDialog(ctxx: context,msg: "To access your camera, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Camera' and enable access for our app");
+      AppUtils.openAppSettingsPermissionDialog(
+          ctxx: context,
+          msg:
+              "To access your camera, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Camera' and enable access for our app");
     } else {
       try {
         final String? barcodeScanRes = await Navigator.push<String>(
@@ -381,8 +384,8 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                                       .length,
                               itemBuilder: (ctx, index) {
                                 return Padding(
-                                  padding: const EdgeInsets.only(
-                                      right: 10, left: 4),
+                                  padding:
+                                      const EdgeInsets.only(right: 10, left: 4),
                                   child: GlassContainer(
                                     borderRadius: 20,
                                     blur: 18,
@@ -397,153 +400,186 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                                     //   ),
                                     // ],
                                     child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: AppUtils.commonContainer(
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: Colors.white
-                                                .withOpacity(0.1)),
-                                        image: DecorationImage(
-                                          image: AssetImage(setImageByType(
-                                              getDigitalCardModel
-                                                          ?.data?.cardData
-                                                          ?.map(
-                                                              (e) => e.isActive)
-                                                          .where((element) =>
-                                                              element == 1)
-                                                          .toList()
-                                                          .length ==
-                                                      0
-                                                  ? ""
-                                                  : getDigitalCardModel
-                                                          ?.data?.cardData
-                                                          ?.where((element) =>
-                                                              element
-                                                                  .isActive ==
-                                                              1)
-                                                          .toList()[index]
-                                                          .type ??
-                                                      '')),
-                                          fit: BoxFit.cover,
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: AppUtils.commonContainer(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.white
+                                                  .withOpacity(0.1)),
+                                          image: DecorationImage(
+                                            image: AssetImage(setImageByType(
+                                                getDigitalCardModel
+                                                            ?.data?.cardData
+                                                            ?.map((e) =>
+                                                                e.isActive)
+                                                            .where((element) =>
+                                                                element == 1)
+                                                            .toList()
+                                                            .length ==
+                                                        0
+                                                    ? ""
+                                                    : getDigitalCardModel
+                                                            ?.data?.cardData
+                                                            ?.where((element) =>
+                                                                element
+                                                                    .isActive ==
+                                                                1)
+                                                            .toList()[index]
+                                                            .type ??
+                                                        '')),
+                                            fit: BoxFit.cover,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
                                         ),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child:
-                                          (getDigitalCardModel?.data?.cardData
-                                                          ?.where((element) =>
-                                                              element
-                                                                  .isActive ==
-                                                              1)
-                                                          .toList()
-                                                          .length ??
-                                                      0) <=
-                                                  0
-                                              ? Center(
-                                                  child: Column(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.center,
+                                        child:
+                                            (getDigitalCardModel?.data?.cardData
+                                                            ?.where((element) =>
+                                                                element
+                                                                    .isActive ==
+                                                                1)
+                                                            .toList()
+                                                            .length ??
+                                                        0) <=
+                                                    0
+                                                ? Center(
+                                                    child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Icon(
+                                                          Icons
+                                                              .credit_card_rounded,
+                                                          size: 48,
+                                                          color: AppColors
+                                                              .colorPurple
+                                                              .withOpacity(0.6),
+                                                        ),
+                                                        AppUtils.commonSizedBox(
+                                                            height: 12),
+                                                        AppUtils.commonTextWidget(
+                                                            text: "WELCOME",
+                                                            fontFamily: StringUtils
+                                                                .fontFamilyHeading,
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            letterSpacing: 2,
+                                                            textColor: AppColors
+                                                                .colorOffWhite),
+                                                        AppUtils.commonSizedBox(
+                                                            height: 8),
+                                                        AppUtils.commonTextWidget(
+                                                            textColor: AppColors
+                                                                .colorTextMuted,
+                                                            text:
+                                                                "Start by creating your profile",
+                                                            fontSize: 11,
+                                                            letterSpacing: 0.5),
+                                                      ],
+                                                    ),
+                                                  )
+                                                : Row(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.end,
                                                     children: [
-                                                      Icon(
-                                                        Icons
-                                                            .credit_card_rounded,
-                                                        size: 48,
-                                                        color: AppColors
-                                                            .colorPurple
-                                                            .withOpacity(0.6),
-                                                      ),
-                                                      AppUtils.commonSizedBox(
-                                                          height: 12),
-                                                      AppUtils.commonTextWidget(
-                                                          text: "WELCOME",
-                                                          fontFamily: StringUtils
-                                                              .fontFamilyHeading,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                          letterSpacing: 2,
-                                                          textColor: AppColors
-                                                              .colorOffWhite),
-                                                      AppUtils.commonSizedBox(
-                                                          height: 8),
-                                                      AppUtils.commonTextWidget(
-                                                          textColor: AppColors
-                                                              .colorTextMuted,
-                                                          text:
-                                                              "Start by creating your profile",
-                                                          fontSize: 11,
-                                                          letterSpacing: 0.5),
-                                                    ],
-                                                  ),
-                                                )
-                                              : Row(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.end,
-                                                  children: [
-                                                    Expanded(
-                                                      child: Builder(
-                                                        builder: (context) {
-                                                          final cardList = getDigitalCardModel?.data?.cardData?.where((element) => element.isActive == 1).toList() ?? [];
-                                                          final cardItem = cardList.isNotEmpty && index < cardList.length ? cardList[index] : null;
-                                                          final cardType = cardItem?.type ?? '';
-                                                          final cardLabel = cardItem?.cardLabel ?? '';
-                                                          final cardImage = cardItem?.cardImage;
-                                                          final isImageSet = cardItem?.isImageSet == 1;
-                                                          final field1 = cardItem?.field1 ?? '';
+                                                      Expanded(
+                                                        child: Builder(
+                                                          builder: (context) {
+                                                            final cardList = getDigitalCardModel?.data?.cardData?.where((element) => element.isActive == 1).toList() ?? [];
+                                                            final cardItem = cardList.isNotEmpty && index < cardList.length ? cardList[index] : null;
+                                                            final cardType = cardItem?.type ?? '';
+                                                            final cardLabel = cardItem?.cardLabel ?? '';
+                                                            final cardImage = cardItem?.cardImage;
+                                                            final isImageSet = cardItem?.isImageSet == 1;
+                                                            final field1 = cardItem?.field1 ?? '';
 
-                                                          final displayField = AppUtils.formatSocialUsername(cardType, field1);
+                                                            final displayField = AppUtils.formatSocialUsername(cardType, field1);
 
                                                           return Column(
                                                             mainAxisAlignment:
-                                                                MainAxisAlignment.start,
+                                                                MainAxisAlignment
+                                                                    .start,
                                                             crossAxisAlignment:
-                                                                CrossAxisAlignment.start,
+                                                                CrossAxisAlignment
+                                                                    .start,
                                                             children: [
                                                               AppUtils.commonTextWidget(
                                                                   margin: AppUtils.edgeInsetsOnly(
                                                                       bottom:
-                                                                          AppConstants.ten,
-                                                                      left: AppConstants.fifteen,
-                                                                      top:
-                                                                          AppConstants.ten),
+                                                                          AppConstants
+                                                                              .ten,
+                                                                      left: AppConstants
+                                                                          .fifteen,
+                                                                      top: AppConstants
+                                                                          .ten),
                                                                   text:
                                                                       "${cardType.toUpperCase()} CARD",
                                                                   fontFamily:
-                                                                      StringUtils.fontFamilyHeading,
-                                                                  textColor: AppColors.colorWhite.withOpacity(0.8),
-                                                                  letterSpacing: 3,
+                                                                      StringUtils
+                                                                          .fontFamilyHeading,
+                                                                  textColor: AppColors
+                                                                      .colorWhite
+                                                                      .withOpacity(
+                                                                          0.8),
+                                                                  letterSpacing:
+                                                                      3,
                                                                   fontSize:
-                                                                      AppConstants.fifteen),
+                                                                      AppConstants
+                                                                          .fifteen),
                                                               AppUtils.commonTextWidget(
-                                                                  margin: AppUtils.edgeInsetsOnly(
-                                                                      left: AppConstants.fifteen),
-                                                                  text: cardLabel,
+                                                                  margin: AppUtils
+                                                                      .edgeInsetsOnly(
+                                                                          left: AppConstants
+                                                                              .fifteen),
+                                                                  text:
+                                                                      cardLabel,
                                                                   fontFamily:
-                                                                      StringUtils.fontFamilyHeading,
+                                                                      StringUtils
+                                                                          .fontFamilyHeading,
                                                                   overflow:
-                                                                      TextOverflow.ellipsis,
+                                                                      TextOverflow
+                                                                          .ellipsis,
                                                                   maxLines: 1,
-                                                                  softWrap: false,
+                                                                  softWrap:
+                                                                      false,
                                                                   letterSpacing:
                                                                       0.5,
-                                                                  textColor: AppColors.colorWhite.withOpacity(0.5),
+                                                                  textColor: AppColors
+                                                                      .colorWhite
+                                                                      .withOpacity(
+                                                                          0.5),
                                                                   fontSize:
-                                                                      AppConstants.ten),
+                                                                      AppConstants
+                                                                          .ten),
                                                               Container(
                                                                 margin: AppUtils.edgeInsetsOnly(
-                                                                    left: AppConstants.fifteen,
-                                                                    top: AppConstants.fifteen),
+                                                                    left: AppConstants
+                                                                        .fifteen,
+                                                                    top: AppConstants
+                                                                        .fifteen),
                                                                 child: Stack(
-                                                                  clipBehavior: Clip.none,
+                                                                  clipBehavior:
+                                                                      Clip.none,
                                                                   children: [
-                                                                    AppUtils.commonContainer(
-                                                                      decoration: AppUtils.commonBoxDecoration(
-                                                                        color: AppColors.colorMainBlack,
-                                                                        shape: BoxShape.circle,
+                                                                    AppUtils
+                                                                        .commonContainer(
+                                                                      decoration:
+                                                                          AppUtils
+                                                                              .commonBoxDecoration(
+                                                                        color: AppColors
+                                                                            .colorMainBlack,
+                                                                        shape: BoxShape
+                                                                            .circle,
                                                                         border: Border.all(
-                                                                            color: AppColors.colorGrey,
+                                                                            color:
+                                                                                AppColors.colorGrey,
                                                                             width: 1),
                                                                       ),
-                                                                      child: ClipOval(
-                                                                        child: cardImage == null
+                                                                      child:
+                                                                          ClipOval(
+                                                                        child: cardImage ==
+                                                                                null
                                                                             ? AppUtils.commonSizedBox()
                                                                             : CachedNetworkImage(
                                                                                 fit: BoxFit.cover,
@@ -568,14 +604,27 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                                                                       ),
                                                                     ),
                                                                     Positioned(
-                                                                      bottom: -2,
+                                                                      bottom:
+                                                                          -2,
                                                                       right: -2,
-                                                                      child: Container(
-                                                                        padding: EdgeInsets.all(cardType.toLowerCase() == 'business' && cardItem?.companyLogo != null && cardItem!.companyLogo!.isNotEmpty ? 0 : 5),
-                                                                        decoration: BoxDecoration(
-                                                                          color: AppColors.colorMainBlack,
-                                                                          shape: BoxShape.circle,
-                                                                          border: Border.all(color: Colors.white.withOpacity(0.12), width: 1),
+                                                                      child:
+                                                                          Container(
+                                                                        padding: EdgeInsets.all(cardType.toLowerCase() == 'business' &&
+                                                                                cardItem?.companyLogo != null &&
+                                                                                cardItem!.companyLogo!.isNotEmpty
+                                                                            ? 0
+                                                                            : 5),
+                                                                        clipBehavior:
+                                                                            Clip.antiAlias,
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color:
+                                                                              AppColors.colorMainBlack,
+                                                                          shape:
+                                                                              BoxShape.circle,
+                                                                          border: Border.all(
+                                                                              color: Colors.white.withOpacity(0.12),
+                                                                              width: 1),
                                                                           boxShadow: [
                                                                             BoxShadow(
                                                                               color: Colors.black.withOpacity(0.3),
@@ -584,26 +633,29 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                                                                             ),
                                                                           ],
                                                                         ),
-                                                                        width: 26,
-                                                                        height: 26,
-                                                                        child: ClipOval(
-                                                                          child: cardType.toLowerCase() == 'business' && cardItem?.companyLogo != null && cardItem!.companyLogo!.isNotEmpty
-                                                                              ? CachedNetworkImage(
-                                                                                  imageUrl: cardItem.companyLogo!,
-                                                                                  fit: BoxFit.cover,
-                                                                                  placeholder: (context, url) => const CircularProgressIndicator(strokeWidth: 1),
-                                                                                  errorWidget: (context, url, error) => Image.asset(
-                                                                                    AppUtils.setIconByType(cardType),
-                                                                                    width: 16,
-                                                                                    height: 16,
-                                                                                  ),
-                                                                                )
-                                                                              : Image.asset(
+                                                                        width:
+                                                                            30,
+                                                                        height:
+                                                                            30,
+                                                                        child: cardType.toLowerCase() == 'business' &&
+                                                                                cardItem?.companyLogo != null &&
+                                                                                cardItem!.companyLogo!.isNotEmpty
+                                                                            ? CachedNetworkImage(
+                                                                                imageUrl: cardItem.companyLogo!,
+                                                                                fit: BoxFit.cover,
+                                                                                placeholder: (context, url) => const CircularProgressIndicator(strokeWidth: 1),
+                                                                                errorWidget: (context, url, error) => Image.asset(
                                                                                   AppUtils.setIconByType(cardType),
-                                                                                  width: 16,
-                                                                                  height: 16,
+                                                                                  // width: 16,
+                                                                                  // height: 16,
                                                                                 ),
-                                                                        ),
+                                                                              )
+                                                                            : Image.asset(
+                                                                                AppUtils.setIconByType(cardType),
+                                                                                fit: BoxFit.cover,
+                                                                                // width: 16,
+                                                                                // height: 16,
+                                                                              ),
                                                                       ),
                                                                     ),
                                                                   ],
@@ -611,137 +663,147 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                                                               ),
                                                               AppUtils.commonSizedBox(
                                                                   height:
-                                                                      AppConstants.ten),
+                                                                      AppConstants
+                                                                          .ten),
                                                               AppUtils.commonTextWidget(
                                                                   margin: AppUtils.edgeInsetsOnly(
-                                                                      left: AppConstants.fifteen,
-                                                                      top: AppConstants.twenty),
-                                                                  text: displayField,
-                                                                  letterSpacing: 1,
+                                                                      left: AppConstants
+                                                                          .fifteen,
+                                                                      top: AppConstants
+                                                                          .twenty),
+                                                                  text:
+                                                                      displayField,
+                                                                  letterSpacing:
+                                                                      1,
                                                                   overflow:
-                                                                      TextOverflow.ellipsis,
+                                                                      TextOverflow
+                                                                          .ellipsis,
                                                                   maxLines: 1,
                                                                   softWrap:
                                                                       false,
                                                                   fontSize:
-                                                                      AppConstants.fourteen),
+                                                                      AppConstants
+                                                                          .fourteen),
                                                             ],
                                                           );
-                                                        }
+                                                        }),
                                                       ),
-                                                    ),
-                                                    Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment.end,
-                                                      children: [
-                                                        Column(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .spaceEvenly,
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .end,
-                                                          children: [
-                                                            commonBtn(
-                                                                text: "Disable",
-                                                                imageHeight: 22,
-                                                                imagePath:
-                                                                    "assets/images/ic_disable_card.png",
-                                                                isImage: true,
-                                                                onTap: () {
-                                                                  openDisableCardDialog(
-                                                                      postMdl,
-                                                                      getDigitalCardModel
-                                                                          ?.data
-                                                                          ?.cardData
-                                                                          ?.where((element) =>
-                                                                              element.isActive ==
-                                                                              1)
-                                                                          .toList()[
-                                                                              index]
-                                                                          .id
-                                                                          .toString(),
-                                                                      getDigitalCardModel
-                                                                          ?.data
-                                                                          ?.cardData
-                                                                          ?.where((element) =>
-                                                                              element.isActive ==
-                                                                              1)
-                                                                          .toList()[
-                                                                              index]
-                                                                          .type);
-                                                                }),
-                                                            commonBtn(
-                                                                text: "Share",
-                                                                imageHeight: 22,
-                                                                imagePath:
-                                                                    "assets/images/ic_share.png",
-                                                                isImage: true,
-                                                                onTap: () {
-                                                                  _onShare(
-                                                                      context,
-                                                                      getDigitalCardModel
-                                                                          ?.data
-                                                                          ?.cardData
-                                                                          ?.where((element) =>
-                                                                              element.isActive ==
-                                                                              1)
-                                                                          .toList()[
-                                                                              index]
-                                                                          .field1,
-                                                                      getDigitalCardModel
-                                                                          ?.data
-                                                                          ?.cardData
-                                                                          ?.where((element) =>
-                                                                              element.isActive ==
-                                                                              1)
-                                                                          .toList()[
-                                                                              index]
-                                                                          .qrImage);
-                                                                }),
-                                                            commonBtn(
-                                                                text: "Link QR",
-                                                                imageHeight: 22,
-                                                                imagePath:
-                                                                    "assets/images/ic_qr.png",
-                                                                isImage: true,
-                                                                onTap: () {
-                                                                  scanQRCode(
-                                                                      profileID: getDigitalCardModel
-                                                                          ?.data
-                                                                          ?.cardData
-                                                                          ?.where((element) =>
-                                                                              element.isActive ==
-                                                                              1)
-                                                                          .toList()[
-                                                                              index]
-                                                                          .id
-                                                                          .toString(),
-                                                                      postMdl1:
-                                                                          postMdl,
-                                                                      cardType: getDigitalCardModel
-                                                                          ?.data
-                                                                          ?.cardData
-                                                                          ?.where((element) =>
-                                                                              element.isActive ==
-                                                                              1)
-                                                                          .toList()[
-                                                                              index]
-                                                                          .type);
-                                                                }),
-                                                            commonBtn(
-                                                                text: "NFC",
-                                                                imagePath:
-                                                                    "assets/images/ic_nfc_icon.png",
-                                                                isImage: true,
-                                                                 imageHeight: 22,
-                                                                onTap:
-                                                                    () async {
+                                                      Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .end,
+                                                        children: [
+                                                          Column(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .spaceEvenly,
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .end,
+                                                            children: [
+                                                              commonBtn(
+                                                                  text:
+                                                                      "Disable",
+                                                                  imageHeight:
+                                                                      22,
+                                                                  imagePath:
+                                                                      "assets/images/ic_disable_card.png",
+                                                                  isImage: true,
+                                                                  onTap: () {
+                                                                    openDisableCardDialog(
+                                                                        postMdl,
+                                                                        getDigitalCardModel
+                                                                            ?.data
+                                                                            ?.cardData
+                                                                            ?.where((element) =>
+                                                                                element.isActive ==
+                                                                                1)
+                                                                            .toList()[
+                                                                                index]
+                                                                            .id
+                                                                            .toString(),
+                                                                        getDigitalCardModel
+                                                                            ?.data
+                                                                            ?.cardData
+                                                                            ?.where((element) =>
+                                                                                element.isActive ==
+                                                                                1)
+                                                                            .toList()[index]
+                                                                            .type);
+                                                                  }),
+                                                              commonBtn(
+                                                                  text: "Share",
+                                                                  imageHeight:
+                                                                      22,
+                                                                  imagePath:
+                                                                      "assets/images/ic_share.png",
+                                                                  isImage: true,
+                                                                  onTap: () {
+                                                                    _onShare(
+                                                                        context,
+                                                                        getDigitalCardModel
+                                                                            ?.data
+                                                                            ?.cardData
+                                                                            ?.where((element) =>
+                                                                                element.isActive ==
+                                                                                1)
+                                                                            .toList()[
+                                                                                index]
+                                                                            .field1,
+                                                                        getDigitalCardModel
+                                                                            ?.data
+                                                                            ?.cardData
+                                                                            ?.where((element) =>
+                                                                                element.isActive ==
+                                                                                1)
+                                                                            .toList()[index]
+                                                                            .qrImage);
+                                                                  }),
+                                                              commonBtn(
+                                                                  text:
+                                                                      "Link QR",
+                                                                  imageHeight:
+                                                                      22,
+                                                                  imagePath:
+                                                                      "assets/images/ic_qr.png",
+                                                                  isImage: true,
+                                                                  onTap: () {
+                                                                    scanQRCode(
+                                                                        profileID: getDigitalCardModel
+                                                                            ?.data
+                                                                            ?.cardData
+                                                                            ?.where((element) =>
+                                                                                element.isActive ==
+                                                                                1)
+                                                                            .toList()[
+                                                                                index]
+                                                                            .id
+                                                                            .toString(),
+                                                                        postMdl1:
+                                                                            postMdl,
+                                                                        cardType: getDigitalCardModel
+                                                                            ?.data
+                                                                            ?.cardData
+                                                                            ?.where((element) =>
+                                                                                element.isActive ==
+                                                                                1)
+                                                                            .toList()[index]
+                                                                            .type);
+                                                                  }),
+                                                              commonBtn(
+                                                                  text: "NFC",
+                                                                  imagePath:
+                                                                      "assets/images/ic_nfc_icon.png",
+                                                                  isImage: true,
+                                                                  imageHeight:
+                                                                      22,
+                                                                  onTap:
+                                                                      () async {
                                                                     bool
-                                                                    isAvailable =
-                                                                    await NfcManager
-                                                                        .instance
-                                                                        .isAvailable();
+                                                                        isAvailable =
+                                                                        await NfcManager
+                                                                            .instance
+                                                                            .isAvailable();
                                                                     if (isAvailable) {
                                                                       showModalBottomSheet(
                                                                         isScrollControlled:
@@ -749,7 +811,7 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                                                                         backgroundColor: Colors.transparent,
                                                                         elevation: 0,
                                                                         context:
-                                                                        context,
+                                                                            context,
                                                                         builder:
                                                                             (BuildContext
                                                                         sheetCtx) {
@@ -838,22 +900,21 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                                                                           );
                                                                         },
                                                                       ).whenComplete(
-                                                                              () {
-                                                                            NfcManager
-                                                                                .instance
-                                                                                .stopSession();
-                                                                            nfcWritingString
-                                                                                .value =
+                                                                          () {
+                                                                        NfcManager
+                                                                            .instance
+                                                                            .stopSession();
+                                                                        nfcWritingString.value =
                                                                             "Write to NFC";
-                                                                          });
+                                                                      });
                                                                     } else {
                                                                       AppUtils.showSnackBarWithColor(
                                                                           context:
-                                                                          context,
+                                                                              context,
                                                                           message:
-                                                                          "NFC is not enabled on your device",
+                                                                              "NFC is not enabled on your device",
                                                                           giveColor:
-                                                                          AppColors.colorBlueAccent);
+                                                                              AppColors.colorBlueAccent);
                                                                     }
                                                                   }),
                                                             ],
@@ -918,8 +979,7 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
   Widget _buildWelcomeHeader(DashboardProvider postMdl) {
     final firstName = getDigitalCardModel?.data?.userData?.firstName ?? '';
     final lastName = getDigitalCardModel?.data?.userData?.lastName ?? '';
-    final profileUrl =
-        getDigitalCardModel?.data?.userData?.profileImage ?? '';
+    final profileUrl = getDigitalCardModel?.data?.userData?.profileImage ?? '';
 
     return GlassContainer(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -1096,9 +1156,7 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                     ],
                   )
                 : null,
-            color: filled
-                ? null
-                : Colors.white.withOpacity(0.04),
+            color: filled ? null : Colors.white.withOpacity(0.04),
             border: Border.all(
               color: filled
                   ? AppColors.colorPurple.withOpacity(0.5)
@@ -1387,12 +1445,9 @@ with a QR code",
                 ],
               ),
               border: Border(
-                top: BorderSide(
-                    color: Colors.white.withOpacity(0.12)),
-                left: BorderSide(
-                    color: Colors.white.withOpacity(0.12)),
-                bottom: BorderSide(
-                    color: Colors.white.withOpacity(0.12)),
+                top: BorderSide(color: Colors.white.withOpacity(0.12)),
+                left: BorderSide(color: Colors.white.withOpacity(0.12)),
+                bottom: BorderSide(color: Colors.white.withOpacity(0.12)),
               ),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
@@ -1506,12 +1561,8 @@ with a QR code",
             width: active ? 28 : 7,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              gradient: active
-                  ? AppColors.gradientPurple
-                  : null,
-              color: active
-                  ? null
-                  : Colors.white.withOpacity(0.2),
+              gradient: active ? AppColors.gradientPurple : null,
+              color: active ? null : Colors.white.withOpacity(0.2),
               boxShadow: active
                   ? [
                       BoxShadow(
@@ -1666,10 +1717,12 @@ class QRScannerOverlayPainter extends CustomPainter {
       const Radius.circular(16),
     );
 
-    final backgroundPath = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+    final backgroundPath = Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
     final cutoutPath = Path()..addRRect(cutoutRect);
 
-    final path = Path.combine(PathOperation.difference, backgroundPath, cutoutPath);
+    final path =
+        Path.combine(PathOperation.difference, backgroundPath, cutoutPath);
     canvas.drawPath(path, backgroundPaint);
   }
 
