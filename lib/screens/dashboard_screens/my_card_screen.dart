@@ -389,6 +389,7 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                                   padding:
                                       const EdgeInsets.only(right: 10, left: 4),
                                   child: GlassContainer(
+                                    hideBoxShadow: true,
                                     borderRadius: 20,
                                     blur: 18,
                                     opacity: 0.04,

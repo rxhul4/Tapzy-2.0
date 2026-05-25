@@ -16,6 +16,7 @@ class GlassContainer extends StatelessWidget {
   final double? height;
   final List<BoxShadow>? boxShadow;
   final Gradient? gradient;
+  final bool hideBoxShadow;
   const GlassContainer({
     super.key,
     required this.child,
@@ -30,6 +31,7 @@ class GlassContainer extends StatelessWidget {
     this.height,
     this.boxShadow,
     this.gradient,
+    this.hideBoxShadow = false,
   });
 
   @override
@@ -42,7 +44,7 @@ class GlassContainer extends StatelessWidget {
       margin: margin,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: boxShadow ??
+        boxShadow: hideBoxShadow? [] : boxShadow ??
             [
               BoxShadow(
                 color: tint.withOpacity(0.12),
