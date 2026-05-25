@@ -21,6 +21,8 @@ import 'package:tapzy/models/link_card_model.dart';
 import 'package:tapzy/providers/dashboard_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/utils/preference_helper.dart';
+
 class MyCardsScreen extends StatefulWidget {
   const MyCardsScreen({Key? key}) : super(key: key);
 
@@ -1313,14 +1315,13 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                     Divider(color: Colors.white.withOpacity(0.15), thickness: 3.5, endIndent: 150, indent: 150, height: 10),
                     AppUtils.commonSizedBox(height: 20),
                     AppUtils.commonTextWidget(
+                        text: "Scan and share your card with a QR code",
                         margin: AppUtils.edgeInsetsOnly(right: 20, left: 20),
                         textColor: AppColors.colorWhite.withOpacity(0.8),
                         letterSpacing: 1,
                         textAlign: TextAlign.center,
                         fontWeight: FontWeight.w700,
                         fontFamily: StringUtils.fontFamilyHeading,
-                        text: "Scan and share your card
-with a QR code",
                         fontSize: AppConstants.sixteen),
                     AppUtils.commonSizedBox(height: 24),
                     Center(
