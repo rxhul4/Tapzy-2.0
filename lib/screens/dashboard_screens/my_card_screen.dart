@@ -262,11 +262,50 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
     }
   }
 
-  void _onShare(BuildContext context, String? text, String? link) async {
+  void _onShare(BuildContext context, String? text, String? link,
+      {bool onlyAirDrop = false}) async {
     final box = context.findRenderObject() as RenderBox?;
-    await Share.share(link ?? '',
-        subject: text,
-        sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
+    if (onlyAirDrop) {
+      final uri = link != null ? Uri.tryParse(link) : null;
+      final bool hasScheme = uri?.hasScheme ?? false;
+      await SharePlus.instance.share(
+        ShareParams(
+          uri: hasScheme ? uri : null,
+          text: hasScheme ? null : (link ?? ''),
+          title: text,
+          sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+          excludedCupertinoActivities: [
+            CupertinoActivityType.postToFacebook,
+            CupertinoActivityType.postToTwitter,
+            CupertinoActivityType.postToWeibo,
+            CupertinoActivityType.message,
+            CupertinoActivityType.mail,
+            CupertinoActivityType.print,
+            CupertinoActivityType.copyToPasteboard,
+            CupertinoActivityType.assignToContact,
+            CupertinoActivityType.saveToCameraRoll,
+            CupertinoActivityType.addToReadingList,
+            CupertinoActivityType.postToFlickr,
+            CupertinoActivityType.postToVimeo,
+            CupertinoActivityType.postToTencentWeibo,
+            CupertinoActivityType.openInIBooks,
+            CupertinoActivityType.markupAsPDF,
+            CupertinoActivityType.sharePlay,
+            CupertinoActivityType.collaborationInviteWithLink,
+            CupertinoActivityType.collaborationCopyLink,
+            CupertinoActivityType.addToHomeScreen,
+          ],
+        ),
+      );
+    } else {
+      await SharePlus.instance.share(
+        ShareParams(
+          text: link ?? '',
+          subject: text,
+          sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+        ),
+      );
+    }
   }
 
   ValueNotifier<dynamic> result = ValueNotifier(null);
@@ -1256,7 +1295,7 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                               [];
                           if (cardList.isNotEmpty && _currentIndex < cardList.length) {
                             final card = cardList[_currentIndex];
-                            _onShare(context, card.field1, card.qrImage);
+                            _onShare(context, card.field1, card.qrImage, onlyAirDrop: true);
                           } else {
                             AppUtils.showSnackBarWithColor(
                               context: context,
