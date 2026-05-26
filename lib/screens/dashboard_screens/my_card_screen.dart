@@ -1204,7 +1204,7 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
           Text(
             Theme.of(context).platform == TargetPlatform.android
                 ? 'Tap below to share your active card via QR code or NFC.'
-                : 'Tap below to view and share the QR code for your active card.',
+                : 'Tap below to share your active card via QR code or AirDrop.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.colorTextMuted,
@@ -1235,13 +1235,39 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                     ),
                   ],
                 )
-              : SizedBox(
-                  width: double.infinity,
-                  child: _buildFooterButton(
-                    icon: Icons.qr_code_2_rounded,
-                    label: 'Open QR Code',
-                    onTap: () => openQRPage(_currentIndex),
-                  ),
+              : Row(
+                  children: [
+                    Expanded(
+                      child: _buildFooterButton(
+                        icon: Icons.qr_code_2_rounded,
+                        label: 'Open QR Code',
+                        onTap: () => openQRPage(_currentIndex),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildFooterButton(
+                        icon: Icons.ios_share_rounded,
+                        label: 'AirDrop Share',
+                        onTap: () {
+                          final cardList = getDigitalCardModel?.data?.cardData
+                                  ?.where((element) => element.isActive == 1)
+                                  .toList() ??
+                              [];
+                          if (cardList.isNotEmpty && _currentIndex < cardList.length) {
+                            final card = cardList[_currentIndex];
+                            _onShare(context, card.field1, card.qrImage);
+                          } else {
+                            AppUtils.showSnackBarWithColor(
+                              context: context,
+                              message: "No active profile found",
+                              giveColor: AppColors.colorGreyLatest,
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
                 ),
         ],
       ),
