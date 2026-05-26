@@ -108,7 +108,6 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
         // isDisableCardList?.addAll(getDigitalCardModel?.data?.cardData?.where((element) => element.isActive == 0) ?? []);
         // print("dataaaaaaaaaaa ${isDisableCardList}");
         showNoData.value = false;
-        _updateActiveNfcUrl(_currentIndex);
       } else {
         showNoData.value = true;
       }
@@ -139,7 +138,6 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
         setState(() {
           _currentIndex = nextPage;
         });
-        _updateActiveNfcUrl(nextPage);
       }
     });
   }
@@ -1204,7 +1202,9 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
       child: Column(
         children: [
           Text(
-            'Tap below to view and share the QR code for your active card.',
+            Theme.of(context).platform == TargetPlatform.android
+                ? 'Tap below to share your active card via QR code or NFC.'
+                : 'Tap below to view and share the QR code for your active card.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.colorTextMuted,
@@ -1215,60 +1215,97 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => openQRPage(_currentIndex),
-                borderRadius: BorderRadius.circular(14),
-                child: Ink(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.colorPurple.withOpacity(0.35),
-                        AppColors.colorPurpleLight.withOpacity(0.25),
-                      ],
+          Theme.of(context).platform == TargetPlatform.android
+              ? Row(
+                  children: [
+                    Expanded(
+                      child: _buildFooterButton(
+                        icon: Icons.qr_code_2_rounded,
+                        label: 'Open QR Code',
+                        onTap: () => openQRPage(_currentIndex),
+                      ),
                     ),
-                    border: Border.all(
-                      color: AppColors.colorPurple.withOpacity(0.45),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildFooterButton(
+                        icon: Icons.nfc_rounded,
+                        label: 'NFC Share',
+                        onTap: () => openNfcSharePage(_currentIndex),
+                      ),
                     ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.qr_code_2_rounded,
-                          color: AppColors.colorOffWhite,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Open QR Code',
-                          style: TextStyle(
-                            color: AppColors.colorOffWhite,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: StringUtils.fontFamilyHeading,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
+                  ],
+                )
+              : SizedBox(
+                  width: double.infinity,
+                  child: _buildFooterButton(
+                    icon: Icons.qr_code_2_rounded,
+                    label: 'Open QR Code',
+                    onTap: () => openQRPage(_currentIndex),
                   ),
                 ),
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 
+  Widget _buildFooterButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            gradient: LinearGradient(
+              colors: [
+                AppColors.colorPurple.withOpacity(0.35),
+                AppColors.colorPurpleLight.withOpacity(0.25),
+              ],
+            ),
+            border: Border.all(
+              color: AppColors.colorPurple.withOpacity(0.45),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: AppColors.colorOffWhite,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: AppColors.colorOffWhite,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: StringUtils.fontFamilyHeading,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   openQRPage(int index) {
+    // Clear NFC trigger when opening QR code modal
+    PreferenceHelper.load().then((_) {
+      PreferenceHelper.setString("active_nfc_url", "");
+    });
+
     var imageUrl1;
     try {
       imageUrl1 = getDigitalCardModel?.data?.cardData
@@ -1403,6 +1440,194 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
         },
       );
     }
+  }
+
+  openNfcSharePage(int index) async {
+    var cardUrl;
+    try {
+      cardUrl = getDigitalCardModel?.data?.cardData
+          ?.where((element) => element.isActive == 1)
+          .toList()[index]
+          .qrImage;
+    } catch (e) {
+      AppUtils.showSnackBarWithColor(
+          context: context,
+          message: "No Active Profile Found",
+          giveColor: AppColors.colorGreyLatest);
+      return;
+    }
+
+    if (cardUrl != null && cardUrl.isNotEmpty) {
+      // Trigger NFC to NFC transfer by saving URL to shared preferences
+      await PreferenceHelper.load();
+      await PreferenceHelper.setString("active_nfc_url", cardUrl);
+      print("NFC Transfer triggered: Saved active NFC URL to preferences: $cardUrl");
+
+      showModalBottomSheet(
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        context: context,
+        builder: (BuildContext sheetCtx) {
+          return ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topRight: Radius.circular(24),
+              topLeft: Radius.circular(24),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+                decoration: BoxDecoration(
+                  color: AppColors.colorMainBlack.withOpacity(0.55),
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(24),
+                    topLeft: Radius.circular(24),
+                  ),
+                  border: Border(
+                    top: BorderSide(color: Colors.white.withOpacity(0.15), width: 1.2),
+                    left: BorderSide(color: Colors.white.withOpacity(0.08), width: 0.8),
+                    right: BorderSide(color: Colors.white.withOpacity(0.08), width: 0.8),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Divider(color: Colors.white.withOpacity(0.15), thickness: 3.5, endIndent: 150, indent: 150, height: 10),
+                    AppUtils.commonSizedBox(height: 20),
+                    AppUtils.commonTextWidget(
+                        text: "Phone-to-Phone NFC Share",
+                        textColor: AppColors.colorWhite,
+                        letterSpacing: 1,
+                        textAlign: TextAlign.center,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: StringUtils.fontFamilyHeading,
+                        fontSize: AppConstants.eighteen),
+                    AppUtils.commonSizedBox(height: 10),
+                    AppUtils.commonTextWidget(
+                        text: "Share your digital card instantly by tapping phones together",
+                        textColor: AppColors.colorTextMuted,
+                        letterSpacing: 0.5,
+                        textAlign: TextAlign.center,
+                        fontWeight: FontWeight.w400,
+                        fontFamily: StringUtils.fontFamilyPara,
+                        fontSize: AppConstants.twelve),
+                    AppUtils.commonSizedBox(height: 30),
+                    
+                    // Pulsating HCE animation
+                    const _NfcPulseAnimation(),
+
+                    AppUtils.commonSizedBox(height: 30),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.03),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white.withOpacity(0.08)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildInstructionStep(
+                            stepNumber: "1",
+                            title: "Enable NFC",
+                            description: "Make sure NFC is turned on in your phone settings and the receiver's phone screen is unlocked.",
+                          ),
+                          const SizedBox(height: 12),
+                          _buildInstructionStep(
+                            stepNumber: "2",
+                            title: "Tap Phones Together",
+                            description: "Tap the back of your phone to the back or top of their phone. HCE service will transmit your card.",
+                          ),
+                          const SizedBox(height: 12),
+                          _buildInstructionStep(
+                            stepNumber: "3",
+                            title: "Open the Link",
+                            description: "A prompt or browser will automatically open on the receiving phone with your digital business card.",
+                          ),
+                        ],
+                      ),
+                    ),
+                    AppUtils.commonSizedBox(height: 24),
+                    AppUtils.commonElevatedBtn(
+                      width: double.infinity,
+                      onPressed: () => Navigator.pop(sheetCtx),
+                      height: 46,
+                      text: "Done",
+                      gradient: AppColors.gradientPurple,
+                    ),
+                    AppUtils.commonSizedBox(height: 10),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ).whenComplete(() async {
+        // Remove NFC trigger when modal is closed
+        await PreferenceHelper.load();
+        await PreferenceHelper.setString("active_nfc_url", "");
+        print("NFC Transfer stopped: Cleared active NFC URL from preferences.");
+      });
+    }
+  }
+
+  Widget _buildInstructionStep({
+    required String stepNumber,
+    required String title,
+    required String description,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.colorPurple.withOpacity(0.2),
+            border: Border.all(color: AppColors.colorPurple.withOpacity(0.6), width: 1.5),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            stepNumber,
+            style: TextStyle(
+              color: AppColors.colorPurpleLight,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              fontFamily: StringUtils.fontFamilyHeading,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: AppColors.colorOffWhite,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: StringUtils.fontFamilyHeading,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                description,
+                style: TextStyle(
+                  color: AppColors.colorTextSubtle,
+                  fontSize: 11,
+                  fontFamily: StringUtils.fontFamilyPara,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _launchInBrowser(Uri url) async {
@@ -1731,5 +1956,86 @@ class QRScannerOverlayPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant QRScannerOverlayPainter oldDelegate) {
     return oldDelegate.scanAreaSize != scanAreaSize;
+  }
+}
+
+class _NfcPulseAnimation extends StatefulWidget {
+  const _NfcPulseAnimation({Key? key}) : super(key: key);
+
+  @override
+  State<_NfcPulseAnimation> createState() => _NfcPulseAnimationState();
+}
+
+class _NfcPulseAnimationState extends State<_NfcPulseAnimation>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: 110 + (_controller.value * 40),
+              height: 110 + (_controller.value * 40),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.colorPurple.withOpacity(0.15 * (1 - _controller.value)),
+              ),
+            ),
+            Container(
+              width: 80 + (_controller.value * 30),
+              height: 80 + (_controller.value * 30),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.colorPurple.withOpacity(0.3 * (1 - _controller.value)),
+              ),
+            ),
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.colorMainBlack.withOpacity(0.6),
+                border: Border.all(
+                  color: AppColors.colorPurpleLight.withOpacity(0.5),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.colorPurple.withOpacity(0.3),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.nfc_rounded,
+                color: AppColors.colorPurpleLight,
+                size: 38,
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
