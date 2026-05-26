@@ -19,6 +19,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
   bool _isPermissionDenied = false;
   FlashMode _flashMode = FlashMode.off;
   bool _isCapturing = false;
+  bool _isVertical = false;
 
   @override
   void initState() {
@@ -234,155 +235,192 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
     }
 
     final size = MediaQuery.of(context).size;
-    final double cardWidth = size.width * 0.85;
-    final double cardHeight = cardWidth / 1.58; // standard card aspect ratio
+    final double targetWidth = _isVertical ? size.width * 0.62 : size.width * 0.85;
+    final double targetHeight = _isVertical ? targetWidth * 1.58 : targetWidth / 1.58;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // ── Camera Preview ──
-          ClipRect(
-            child: OverflowBox(
-              alignment: Alignment.center,
-              child: FittedBox(
-                fit: BoxFit.cover,
-                child: SizedBox(
-                  width: size.width,
-                  height: size.width * _controller!.value.aspectRatio,
-                  child: CameraPreview(_controller!),
-                ),
-              ),
-            ),
-          ),
+    return TweenAnimationBuilder<Size>(
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOutCubic,
+      tween: Tween<Size>(
+        begin: Size(targetWidth, targetHeight),
+        end: Size(targetWidth, targetHeight),
+      ),
+      builder: (context, animSize, child) {
+        final double cardWidth = animSize.width;
+        final double cardHeight = animSize.height;
 
-          // ── Custom Paint Dark Overlay with a Hole Cutout ──
-          CustomPaint(
-            size: Size.infinite,
-            painter: CardCutoutPainter(
-              cardWidth: cardWidth,
-              cardHeight: cardHeight,
-            ),
-          ),
-
-          // ── Glowing Border around the Hole ──
-          Align(
-            alignment: Alignment.center,
-            child: Container(
-              width: cardWidth,
-              height: cardHeight,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.colorPurple,
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.colorPurple.withOpacity(0.3),
-                    blurRadius: 16,
-                    spreadRadius: 1,
+        return Scaffold(
+          backgroundColor: Colors.black,
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              // ── Camera Preview ──
+              ClipRect(
+                child: OverflowBox(
+                  alignment: Alignment.center,
+                  child: FittedBox(
+                    fit: BoxFit.cover,
+                    child: SizedBox(
+                      width: size.width,
+                      height: size.width * _controller!.value.aspectRatio,
+                      child: CameraPreview(_controller!),
+                    ),
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
 
-          // ── Guideline Instruction Label ──
-          Positioned(
-            top: size.height * 0.5 - (cardHeight / 2) - 44,
-            left: 0,
-            right: 0,
-            child: const Center(
-              child: Text(
-                'Align business card within frame',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Poppins',
-                  shadows: [
-                    Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(0, 1)),
+              // ── Custom Paint Dark Overlay with a Hole Cutout ──
+              CustomPaint(
+                size: Size.infinite,
+                painter: CardCutoutPainter(
+                  cardWidth: cardWidth,
+                  cardHeight: cardHeight,
+                ),
+              ),
+
+              // ── Glowing Border around the Hole ──
+              Align(
+                alignment: Alignment.center,
+                child: Container(
+                  width: cardWidth,
+                  height: cardHeight,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.colorPurple,
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.colorPurple.withOpacity(0.3),
+                        blurRadius: 16,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // ── Guideline Instruction Label ──
+              Positioned(
+                top: size.height * 0.5 - (cardHeight / 2) - 44,
+                left: 0,
+                right: 0,
+                child: const Center(
+                  child: Text(
+                    'Align business card within frame',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Poppins',
+                      shadows: [
+                        Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(0, 1)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // ── Actions Overlay (Top Action Bar & Bottom Shutter Bar) ──
+              SafeArea(
+                child: Column(
+                  children: [
+                    // Top Action Bar
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Close Button
+                          IconButton(
+                            icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          // Right Action Buttons
+                          Row(
+                            children: [
+                              // Orientation Switcher Toggle
+                              IconButton(
+                                icon: Icon(
+                                  _isVertical
+                                      ? Icons.crop_landscape_rounded
+                                      : Icons.crop_portrait_rounded,
+                                  color: Colors.white,
+                                  size: 26,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isVertical = !_isVertical;
+                                  });
+                                },
+                                tooltip: _isVertical
+                                    ? 'Switch to Horizontal'
+                                    : 'Switch to Vertical',
+                              ),
+                              const SizedBox(width: 8),
+                              // Flash Toggle Button
+                              IconButton(
+                                icon: Icon(
+                                  _flashMode == FlashMode.torch
+                                      ? Icons.flash_on_rounded
+                                      : Icons.flash_off_rounded,
+                                  color: _flashMode == FlashMode.torch
+                                      ? Colors.yellowAccent
+                                      : Colors.white,
+                                  size: 26,
+                                ),
+                                onPressed: _toggleFlash,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    // Bottom Shutter Bar
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 36),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: _takePicture,
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 4),
+                              ),
+                              padding: const EdgeInsets.all(6),
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                ),
+                                child: _isCapturing
+                                    ? const Center(
+                                        child: CircularProgressIndicator(
+                                          color: AppColors.colorPurple,
+                                          strokeWidth: 3,
+                                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.colorPurple),
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ),
+            ],
           ),
-
-          // ── Actions Overlay (Top Action Bar & Bottom Shutter Bar) ──
-          SafeArea(
-            child: Column(
-              children: [
-                // Top Action Bar
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Close Button
-                      IconButton(
-                        icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      // Flash Toggle Button
-                      IconButton(
-                        icon: Icon(
-                          _flashMode == FlashMode.torch
-                              ? Icons.flash_on_rounded
-                              : Icons.flash_off_rounded,
-                          color: _flashMode == FlashMode.torch
-                              ? Colors.yellowAccent
-                              : Colors.white,
-                          size: 26,
-                        ),
-                        onPressed: _toggleFlash,
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                // Bottom Shutter Bar
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 36),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      GestureDetector(
-                        onTap: _takePicture,
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 4),
-                          ),
-                          padding: const EdgeInsets.all(6),
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
-                            ),
-                            child: _isCapturing
-                                ? const Center(
-                                    child: CircularProgressIndicator(
-                                      color: AppColors.colorPurple,
-                                      strokeWidth: 3,
-                                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.colorPurple),
-                                    ),
-                                  )
-                                : null,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
