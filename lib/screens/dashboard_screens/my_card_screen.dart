@@ -1496,7 +1496,7 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                     Divider(color: Colors.white.withOpacity(0.15), thickness: 3.5, endIndent: 150, indent: 150, height: 10),
                     AppUtils.commonSizedBox(height: 20),
                     AppUtils.commonTextWidget(
-                        text: "Phone-to-Phone NFC Share",
+                        text: "Tap Phones to Share",
                         textColor: AppColors.colorWhite,
                         letterSpacing: 1,
                         textAlign: TextAlign.center,
@@ -1505,7 +1505,7 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                         fontSize: AppConstants.eighteen),
                     AppUtils.commonSizedBox(height: 10),
                     AppUtils.commonTextWidget(
-                        text: "Share your digital card instantly by tapping phones together",
+                        text: "Hold the back of your phone close to their phone",
                         textColor: AppColors.colorTextMuted,
                         letterSpacing: 0.5,
                         textAlign: TextAlign.center,
@@ -1514,36 +1514,27 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                         fontSize: AppConstants.twelve),
                     AppUtils.commonSizedBox(height: 30),
                     
-                    // Pulsating HCE animation
-                    const _NfcPulseAnimation(),
+                    // Phone-to-phone contact animation
+                    const _PhoneToPhoneAnimation(),
 
                     AppUtils.commonSizedBox(height: 30),
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.03),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: Colors.white.withOpacity(0.08)),
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildInstructionStep(
-                            stepNumber: "1",
-                            title: "Enable NFC",
-                            description: "Make sure NFC is turned on in your phone settings and the receiver's phone screen is unlocked.",
+                            icon: Icons.lock_open_rounded,
+                            title: "Keep phones unlocked & screens on",
                           ),
                           const SizedBox(height: 12),
                           _buildInstructionStep(
-                            stepNumber: "2",
-                            title: "Tap Phones Together",
-                            description: "Tap the back of your phone to the back or top of their phone. HCE service will transmit your card.",
-                          ),
-                          const SizedBox(height: 12),
-                          _buildInstructionStep(
-                            stepNumber: "3",
-                            title: "Open the Link",
-                            description: "A prompt or browser will automatically open on the receiving phone with your digital business card.",
+                            icon: Icons.contactless_rounded,
+                            title: "Tap the backs together to share instantly",
                           ),
                         ],
                       ),
@@ -1573,57 +1564,36 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
   }
 
   Widget _buildInstructionStep({
-    required String stepNumber,
+    required IconData icon,
     required String title,
-    required String description,
   }) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 22,
-          height: 22,
+          width: 28,
+          height: 28,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.colorPurple.withOpacity(0.2),
-            border: Border.all(color: AppColors.colorPurple.withOpacity(0.6), width: 1.5),
+            color: AppColors.colorPurple.withOpacity(0.15),
+            border: Border.all(color: AppColors.colorPurple.withOpacity(0.4), width: 1),
           ),
           alignment: Alignment.center,
-          child: Text(
-            stepNumber,
-            style: TextStyle(
-              color: AppColors.colorPurpleLight,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              fontFamily: StringUtils.fontFamilyHeading,
-            ),
+          child: Icon(
+            icon,
+            color: AppColors.colorPurpleLight,
+            size: 15,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: AppColors.colorOffWhite,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: StringUtils.fontFamilyHeading,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                description,
-                style: TextStyle(
-                  color: AppColors.colorTextSubtle,
-                  fontSize: 11,
-                  fontFamily: StringUtils.fontFamilyPara,
-                  height: 1.4,
-                ),
-              ),
-            ],
+          child: Text(
+            title,
+            style: TextStyle(
+              color: AppColors.colorOffWhite.withOpacity(0.9),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              fontFamily: StringUtils.fontFamilyHeading,
+            ),
           ),
         ),
       ],
@@ -1959,14 +1929,14 @@ class QRScannerOverlayPainter extends CustomPainter {
   }
 }
 
-class _NfcPulseAnimation extends StatefulWidget {
-  const _NfcPulseAnimation({Key? key}) : super(key: key);
+class _PhoneToPhoneAnimation extends StatefulWidget {
+  const _PhoneToPhoneAnimation({Key? key}) : super(key: key);
 
   @override
-  State<_NfcPulseAnimation> createState() => _NfcPulseAnimationState();
+  State<_PhoneToPhoneAnimation> createState() => _PhoneToPhoneAnimationState();
 }
 
-class _NfcPulseAnimationState extends State<_NfcPulseAnimation>
+class _PhoneToPhoneAnimationState extends State<_PhoneToPhoneAnimation>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
@@ -1975,7 +1945,7 @@ class _NfcPulseAnimationState extends State<_NfcPulseAnimation>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 3000),
     )..repeat();
   }
 
@@ -1985,57 +1955,155 @@ class _NfcPulseAnimationState extends State<_NfcPulseAnimation>
     super.dispose();
   }
 
+  Widget _buildPhoneWidget({required bool isSender}) {
+    return Container(
+      width: 36,
+      height: 64,
+      decoration: BoxDecoration(
+        color: AppColors.colorMainBlack.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isSender
+              ? AppColors.colorPurpleLight.withOpacity(0.8)
+              : Colors.white.withOpacity(0.25),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (isSender ? AppColors.colorPurple : Colors.white)
+                .withOpacity(0.08),
+            blurRadius: 6,
+          ),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Notch
+          Positioned(
+            top: 3,
+            child: Container(
+              width: 10,
+              height: 1.8,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.35),
+                borderRadius: BorderRadius.circular(1),
+              ),
+            ),
+          ),
+          // Screen Details
+          Container(
+            margin: const EdgeInsets.fromLTRB(2, 6, 2, 2),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.02),
+              borderRadius: BorderRadius.circular(5),
+            ),
+            alignment: Alignment.center,
+            child: Icon(
+              isSender ? Icons.nfc_rounded : Icons.contactless_rounded,
+              color: isSender
+                  ? AppColors.colorPurpleLight.withOpacity(0.8)
+                  : AppColors.colorOffWhite.withOpacity(0.35),
+              size: 14,
+            ),
+          ),
+          // Home Indicator
+          Positioned(
+            bottom: 3,
+            child: Container(
+              width: 12,
+              height: 1.2,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.25),
+                borderRadius: BorderRadius.circular(1),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: 110 + (_controller.value * 40),
-              height: 110 + (_controller.value * 40),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.colorPurple.withOpacity(0.15 * (1 - _controller.value)),
-              ),
-            ),
-            Container(
-              width: 80 + (_controller.value * 30),
-              height: 80 + (_controller.value * 30),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.colorPurple.withOpacity(0.3 * (1 - _controller.value)),
-              ),
-            ),
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.colorMainBlack.withOpacity(0.6),
-                border: Border.all(
-                  color: AppColors.colorPurpleLight.withOpacity(0.5),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.colorPurple.withOpacity(0.3),
-                    blurRadius: 12,
-                    spreadRadius: 2,
+    return SizedBox(
+      height: 100,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final t = _controller.value;
+          
+          // Phase 1 (0.0 to 0.3): slide in
+          // Phase 2 (0.3 to 0.85): touching / ripple
+          // Phase 3 (0.85 to 1.0): slide out
+          double slideProgress = 0.0;
+          if (t < 0.3) {
+            slideProgress = t / 0.3; // 0.0 -> 1.0
+          } else if (t >= 0.3 && t < 0.85) {
+            slideProgress = 1.0;
+          } else {
+            slideProgress = (1.0 - t) / 0.15; // 1.0 -> 0.0
+          }
+
+          // Ripple Progress (0.0 to 1.0 during Phase 2)
+          double rippleProgress = 0.0;
+          if (t >= 0.3 && t < 0.85) {
+            rippleProgress = (t - 0.3) / 0.55; // 0.0 -> 1.0
+          }
+
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              // Contact point ripple waves
+              if (rippleProgress > 0.0) ...[
+                // Ripple 1
+                Container(
+                  width: 90 * rippleProgress,
+                  height: 90 * rippleProgress,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.colorPurpleLight.withOpacity(0.5 * (1 - rippleProgress)),
+                      width: 1.5,
+                    ),
                   ),
-                ],
+                ),
+                // Ripple 2
+                if (rippleProgress > 0.3)
+                  Container(
+                    width: 90 * (rippleProgress - 0.3) / 0.7,
+                    height: 90 * (rippleProgress - 0.3) / 0.7,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.colorPurple.withOpacity(0.3 * (1 - (rippleProgress - 0.3) / 0.7)),
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+              ],
+
+              // Left Phone (Sender)
+              Transform.translate(
+                offset: Offset(-50 * (1 - slideProgress) - 18, 0),
+                child: Transform.rotate(
+                  angle: -0.15 * (1 - slideProgress),
+                  child: _buildPhoneWidget(isSender: true),
+                ),
               ),
-              child: const Icon(
-                Icons.nfc_rounded,
-                color: AppColors.colorPurpleLight,
-                size: 38,
+
+              // Right Phone (Receiver)
+              Transform.translate(
+                offset: Offset(50 * (1 - slideProgress) + 18, 0),
+                child: Transform.rotate(
+                  angle: 0.15 * (1 - slideProgress),
+                  child: _buildPhoneWidget(isSender: false),
+                ),
               ),
-            ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
 }
