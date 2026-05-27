@@ -227,7 +227,12 @@ class _NotificationListingScreenState extends State<NotificationListingScreen> {
                                 });
                                 _deleteNotification(deletedId);
                               },
-                              child: _buildGlassNotificationCard(notification),
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.pop(context, true);
+                                },
+                                child: _buildGlassNotificationCard(notification),
+                              ),
                             );
                           },
                         ),

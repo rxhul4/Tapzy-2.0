@@ -261,13 +261,18 @@ class _DashboardScreenState extends State<DashboardScreen>
               icon: Icons.notifications_outlined,
               showBadge: _hasUnreadNotifications,
               onTap: () async {
-                await Navigator.push(
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => const NotificationListingScreen(),
                   ),
                 );
                 _checkUnreadNotifications();
+                if (result == true) {
+                  setState(() {
+                    _selectedIndex = 3;
+                  });
+                }
               },
             ),
           ),
