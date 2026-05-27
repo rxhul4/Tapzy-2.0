@@ -93,8 +93,17 @@ class ScanConnectProvider extends ChangeNotifier {
             DateTime parsedDate = DateTime.now();
             if (c.createdAt != null) {
               try {
-                parsedDate = DateTime.parse(c.createdAt!.replaceAll(' ', 'T'));
-              } catch (_) {}
+                String dateStr = c.createdAt!.trim();
+                dateStr = dateStr.replaceAll(' ', 'T');
+                if (!dateStr.endsWith('Z') && !dateStr.contains(RegExp(r'[+-]\d\d:?\d\d$'))) {
+                  dateStr = '${dateStr}Z';
+                }
+                parsedDate = DateTime.parse(dateStr).toLocal();
+              } catch (_) {
+                try {
+                  parsedDate = DateTime.parse(c.createdAt!).toLocal();
+                } catch (_) {}
+              }
             }
             return ScannedContact(
               id: c.id.toString(),

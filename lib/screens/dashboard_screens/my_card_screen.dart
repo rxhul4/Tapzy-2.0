@@ -1260,7 +1260,7 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                     Expanded(
                       child: _buildFooterButton(
                         icon: Icons.qr_code_2_rounded,
-                        label: 'Open QR Code',
+                        label: 'Open QR',
                         onTap: () => openQRPage(_currentIndex),
                       ),
                     ),
@@ -1279,7 +1279,7 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                     Expanded(
                       child: _buildFooterButton(
                         icon: Icons.qr_code_2_rounded,
-                        label: 'Open QR Code',
+                        label: 'Open QR',
                         onTap: () => openQRPage(_currentIndex),
                       ),
                     ),

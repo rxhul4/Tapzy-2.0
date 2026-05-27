@@ -193,97 +193,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           const SizedBox(width: 8),
           // Date Range Picker button
           GestureDetector(
-            onTap: () async {
-              final picked = await showDateRangePicker(
-                context: context,
-                firstDate: DateTime(2024),
-                lastDate: DateTime.now(),
-                initialDateRange: provider.selectedDateRange,
-                builder: (ctx, child) {
-                  return Theme(
-                    data: ThemeData.dark().copyWith(
-                      appBarTheme: const AppBarTheme(
-                        backgroundColor: Color(0xFF13131A),
-                        foregroundColor: AppColors.colorOffWhite,
-                        elevation: 0,
-                        iconTheme: IconThemeData(color: AppColors.colorOffWhite),
-                      ),
-                      scaffoldBackgroundColor: const Color(0xFF0A0A0F),
-                      colorScheme: const ColorScheme.dark(
-                        primary: AppColors.colorPurple,
-                        onPrimary: Colors.white,
-                        secondary: AppColors.colorPurpleLight,
-                        onSecondary: Colors.white,
-                        surface: Color(0xFF1C1C27),
-                        onSurface: AppColors.colorOffWhite,
-                        surfaceContainerHighest: Color(0xFF1C1C27),
-                      ),
-                      dialogBackgroundColor: const Color(0xFF13131A),
-                      textTheme: const TextTheme(
-                        bodyLarge: TextStyle(color: AppColors.colorOffWhite),
-                        bodyMedium: TextStyle(color: AppColors.colorOffWhite),
-                        titleMedium: TextStyle(color: AppColors.colorOffWhite),
-                        labelLarge: TextStyle(color: AppColors.colorOffWhite),
-                      ),
-                      datePickerTheme: DatePickerThemeData(
-                        backgroundColor: const Color(0xFF13131A),
-                        headerBackgroundColor: const Color(0xFF1C1C27),
-                        headerForegroundColor: AppColors.colorOffWhite,
-                        dayForegroundColor: WidgetStateProperty.resolveWith((states) {
-                          if (states.contains(WidgetState.selected)) return Colors.white;
-                          if (states.contains(WidgetState.disabled)) return AppColors.colorTextSubtle;
-                          return AppColors.colorOffWhite;
-                        }),
-                        dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
-                          if (states.contains(WidgetState.selected)) return AppColors.colorPurple;
-                          return Colors.transparent;
-                        }),
-                        dayOverlayColor: WidgetStateProperty.all(AppColors.colorPurple.withOpacity(0.15)),
-                        todayForegroundColor: WidgetStateProperty.all(AppColors.colorPurple),
-                        todayBackgroundColor: WidgetStateProperty.all(Colors.transparent),
-                        todayBorder: const BorderSide(color: AppColors.colorPurple, width: 1),
-                        rangePickerBackgroundColor: const Color(0xFF13131A),
-                        rangePickerHeaderBackgroundColor: const Color(0xFF1C1C27),
-                        rangePickerHeaderForegroundColor: AppColors.colorOffWhite,
-                        rangePickerSurfaceTintColor: Colors.transparent,
-                        rangeSelectionBackgroundColor: AppColors.colorPurple.withOpacity(0.18),
-                        rangeSelectionOverlayColor: WidgetStateProperty.all(AppColors.colorPurple.withOpacity(0.12)),
-                        surfaceTintColor: Colors.transparent,
-                        dividerColor: Colors.white.withOpacity(0.06),
-                        yearForegroundColor: WidgetStateProperty.resolveWith((states) {
-                          if (states.contains(WidgetState.selected)) return Colors.white;
-                          return AppColors.colorOffWhite;
-                        }),
-                        yearBackgroundColor: WidgetStateProperty.resolveWith((states) {
-                          if (states.contains(WidgetState.selected)) return AppColors.colorPurple;
-                          return Colors.transparent;
-                        }),
-                        yearOverlayColor: WidgetStateProperty.all(AppColors.colorPurple.withOpacity(0.15)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      ),
-                      textButtonTheme: TextButtonThemeData(
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.colorPurple,
-                          textStyle: TextStyle(
-                            fontFamily: StringUtils.fontFamilyHeading,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    child: child!,
-                  );
-                },
-              );
-              if (picked != null) {
-                provider.setDateRange(picked);
-                final selected = provider.selectedProfile;
-                provider.fetchAnalytics(
-                  profileId: selected?.id,
-                  profileType: selected?.type,
-                );
-              }
-            },
+            onTap: () => _showDateRangeSelectionSheet(context, provider),
             child: GlassContainer(
               borderRadius: 12,
               blur: 16,
@@ -439,77 +349,416 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     AnalyticsProvider provider,
     List<AnalyticsProfile> profiles,
   ) {
-    final dropdownValue = provider.profileMatchingSelection(profiles);
+    final selected = provider.profileMatchingSelection(profiles);
 
-    return GlassContainer(
-      borderRadius: 16,
-      blur: 16,
-      opacity: 0.05,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-      child: Row(
-        children: [
-          Icon(
-            Icons.filter_list_rounded,
-            size: 20,
-            color: AppColors.colorPurple.withOpacity(0.9),
+    return GestureDetector(
+      onTap: () => _showProfileSelectionSheet(context, provider, profiles),
+      child: GlassContainer(
+        borderRadius: 16,
+        blur: 16,
+        opacity: 0.05,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Icon(
+              Icons.filter_list_rounded,
+              size: 20,
+              color: AppColors.colorPurple.withOpacity(0.9),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                selected?.label ?? selected?.type ?? 'All Profiles',
+                style: TextStyle(
+                  color: AppColors.colorOffWhite,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: StringUtils.fontFamilyHeading,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: AppColors.colorTextMuted.withOpacity(0.9),
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showProfileSelectionSheet(
+    BuildContext context,
+    AnalyticsProvider provider,
+    List<AnalyticsProfile> profiles,
+  ) {
+    final selected = provider.profileMatchingSelection(profiles);
+    showModalBottomSheet(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      context: context,
+      builder: (context) {
+        return ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<AnalyticsProfile?>(
-                value: dropdownValue,
-                isExpanded: true,
-                dropdownColor: AppColors.colorCard,
-                hint: Text(
-                  'All Profiles',
-                  style: TextStyle(
-                    color: AppColors.colorOffWhite,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: StringUtils.fontFamilyHeading,
-                    fontSize: 14,
-                  ),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+              decoration: BoxDecoration(
+                color: AppColors.colorMainBlack.withOpacity(0.55),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
                 ),
-                icon: Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  color: AppColors.colorTextMuted.withOpacity(0.9),
+                border: Border(
+                  top: BorderSide(color: Colors.white.withOpacity(0.15), width: 1.2),
+                  left: BorderSide(color: Colors.white.withOpacity(0.08), width: 0.8),
+                  right: BorderSide(color: Colors.white.withOpacity(0.08), width: 0.8),
                 ),
-                items: [
-                  DropdownMenuItem<AnalyticsProfile?>(
-                    value: null,
-                    child: Text(
-                      'All Profiles',
-                      style: TextStyle(
-                        color: AppColors.colorOffWhite,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: StringUtils.fontFamilyHeading,
-                      ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Divider(color: Colors.white.withOpacity(0.15), thickness: 3.5, endIndent: 150, indent: 150, height: 10),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Select Profile',
+                    style: TextStyle(
+                      color: AppColors.colorOffWhite,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: StringUtils.fontFamilyHeading,
                     ),
                   ),
-                  ...profiles.map((profile) {
-                    return DropdownMenuItem<AnalyticsProfile?>(
-                      value: profile,
-                      child: Text(
-                        profile.label ?? profile.type ?? 'Profile',
-                        style: TextStyle(
-                          color: AppColors.colorOffWhite,
-                          fontFamily: StringUtils.fontFamilyHeading,
-                          fontSize: 14,
-                        ),
+                  const SizedBox(height: 16),
+                  // All Profiles Option
+                  _buildProfileSheetItem(
+                    context: context,
+                    label: 'All Profiles',
+                    isSelected: selected == null,
+                    onTap: () {
+                      provider.setSelectedProfile(null);
+                      provider.fetchAnalytics();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  // Individual Profiles
+                  if (profiles.isNotEmpty)
+                    Flexible(
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: profiles.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final profile = profiles[index];
+                          final isSelected = selected?.id == profile.id && selected?.type == profile.type;
+                          return _buildProfileSheetItem(
+                            context: context,
+                            label: profile.label ?? profile.type ?? 'Profile',
+                            isSelected: isSelected,
+                            onTap: () {
+                              provider.setSelectedProfile(profile);
+                              provider.fetchAnalytics(
+                                profileId: profile.id,
+                                profileType: profile.type,
+                              );
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
                       ),
-                    );
-                  }),
+                    ),
                 ],
-                onChanged: (profile) {
-                  provider.setSelectedProfile(profile);
-                  provider.fetchAnalytics(
-                    profileId: profile?.id,
-                    profileType: profile?.type,
-                  );
-                },
               ),
             ),
           ),
-        ],
+        );
+      },
+    );
+  }
+
+  Widget _buildProfileSheetItem({
+    required BuildContext context,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.colorPurple.withOpacity(0.2) : Colors.white.withOpacity(0.04),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected ? AppColors.colorPurple.withOpacity(0.4) : Colors.white.withOpacity(0.08),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            child: Row(
+              children: [
+                Icon(
+                  isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+                  color: isSelected ? AppColors.colorPurple : AppColors.colorTextMuted,
+                  size: 18,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: isSelected ? AppColors.colorOffWhite : AppColors.colorOffWhite.withOpacity(0.8),
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      fontFamily: StringUtils.fontFamilyHeading,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDateRangeSelectionSheet(BuildContext context, AnalyticsProvider provider) {
+    showModalBottomSheet(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      context: context,
+      builder: (context) {
+        return ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+              decoration: BoxDecoration(
+                color: AppColors.colorMainBlack.withOpacity(0.55),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+                border: Border(
+                  top: BorderSide(color: Colors.white.withOpacity(0.15), width: 1.2),
+                  left: BorderSide(color: Colors.white.withOpacity(0.08), width: 0.8),
+                  right: BorderSide(color: Colors.white.withOpacity(0.08), width: 0.8),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Divider(color: Colors.white.withOpacity(0.15), thickness: 3.5, endIndent: 150, indent: 150, height: 10),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Select Date Range',
+                    style: TextStyle(
+                      color: AppColors.colorOffWhite,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: StringUtils.fontFamilyHeading,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildDateSheetItem(
+                    context: context,
+                    label: 'Last 7 Days',
+                    isSelected: provider.selectedDateRange == null,
+                    onTap: () {
+                      provider.setDateRange(null);
+                      final selected = provider.selectedProfile;
+                      provider.fetchAnalytics(
+                        profileId: selected?.id,
+                        profileType: selected?.type,
+                      );
+                      Navigator.pop(context);
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _buildDateSheetItem(
+                    context: context,
+                    label: 'Last 30 Days',
+                    isSelected: provider.selectedDateRange != null && 
+                               provider.selectedDateRange!.duration.inDays == 29 && 
+                               provider.selectedDateRange!.end.day == DateTime.now().day,
+                    onTap: () {
+                      final now = DateTime.now();
+                      final start = now.subtract(const Duration(days: 29));
+                      provider.setDateRange(DateTimeRange(start: start, end: now));
+                      final selected = provider.selectedProfile;
+                      provider.fetchAnalytics(
+                        profileId: selected?.id,
+                        profileType: selected?.type,
+                      );
+                      Navigator.pop(context);
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _buildDateSheetItem(
+                    context: context,
+                    label: 'Custom Range...',
+                    isSelected: provider.selectedDateRange != null && 
+                               !(provider.selectedDateRange!.duration.inDays == 29 && 
+                                 provider.selectedDateRange!.end.day == DateTime.now().day),
+                    onTap: () async {
+                      Navigator.pop(context); // Close sheet first
+                      
+                      final picked = await showDateRangePicker(
+                        context: context,
+                        firstDate: DateTime(2024),
+                        lastDate: DateTime.now(),
+                        initialDateRange: provider.selectedDateRange,
+                        builder: (ctx, child) {
+                          return Theme(
+                            data: ThemeData.dark().copyWith(
+                              appBarTheme: const AppBarTheme(
+                                backgroundColor: Color(0xFF13131A),
+                                foregroundColor: AppColors.colorOffWhite,
+                                elevation: 0,
+                                iconTheme: IconThemeData(color: AppColors.colorOffWhite),
+                              ),
+                              scaffoldBackgroundColor: const Color(0xFF0A0A0F),
+                              colorScheme: const ColorScheme.dark(
+                                primary: AppColors.colorPurple,
+                                onPrimary: Colors.white,
+                                secondary: AppColors.colorPurpleLight,
+                                onSecondary: Colors.white,
+                                surface: Color(0xFF1C1C27),
+                                onSurface: AppColors.colorOffWhite,
+                                surfaceContainerHighest: Color(0xFF1C1C27),
+                              ),
+                              dialogBackgroundColor: const Color(0xFF13131A),
+                              textTheme: const TextTheme(
+                                bodyLarge: TextStyle(color: AppColors.colorOffWhite),
+                                bodyMedium: TextStyle(color: AppColors.colorOffWhite),
+                                titleMedium: TextStyle(color: AppColors.colorOffWhite),
+                                labelLarge: TextStyle(color: AppColors.colorOffWhite),
+                              ),
+                              datePickerTheme: DatePickerThemeData(
+                                backgroundColor: const Color(0xFF13131A),
+                                headerBackgroundColor: const Color(0xFF1C1C27),
+                                headerForegroundColor: AppColors.colorOffWhite,
+                                dayForegroundColor: WidgetStateProperty.resolveWith((states) {
+                                  if (states.contains(WidgetState.selected)) return Colors.white;
+                                  if (states.contains(WidgetState.disabled)) return AppColors.colorTextSubtle;
+                                  return AppColors.colorOffWhite;
+                                }),
+                                dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
+                                  if (states.contains(WidgetState.selected)) return AppColors.colorPurple;
+                                  return Colors.transparent;
+                                }),
+                                dayOverlayColor: WidgetStateProperty.all(AppColors.colorPurple.withOpacity(0.15)),
+                                todayForegroundColor: WidgetStateProperty.all(AppColors.colorPurple),
+                                todayBackgroundColor: WidgetStateProperty.all(Colors.transparent),
+                                todayBorder: const BorderSide(color: AppColors.colorPurple, width: 1),
+                                rangePickerBackgroundColor: const Color(0xFF13131A),
+                                rangePickerHeaderBackgroundColor: const Color(0xFF1C1C27),
+                                rangePickerHeaderForegroundColor: AppColors.colorOffWhite,
+                                rangePickerSurfaceTintColor: Colors.transparent,
+                                rangeSelectionBackgroundColor: AppColors.colorPurple.withOpacity(0.18),
+                                rangeSelectionOverlayColor: WidgetStateProperty.all(AppColors.colorPurple.withOpacity(0.12)),
+                                surfaceTintColor: Colors.transparent,
+                                dividerColor: Colors.white.withOpacity(0.06),
+                                yearForegroundColor: WidgetStateProperty.resolveWith((states) {
+                                  if (states.contains(WidgetState.selected)) return Colors.white;
+                                  return AppColors.colorOffWhite;
+                                }),
+                                yearBackgroundColor: WidgetStateProperty.resolveWith((states) {
+                                  if (states.contains(WidgetState.selected)) return AppColors.colorPurple;
+                                  return Colors.transparent;
+                                }),
+                                yearOverlayColor: WidgetStateProperty.all(AppColors.colorPurple.withOpacity(0.15)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                              ),
+                              textButtonTheme: TextButtonThemeData(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.colorPurple,
+                                  textStyle: TextStyle(
+                                    fontFamily: StringUtils.fontFamilyHeading,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (picked != null) {
+                        provider.setDateRange(picked);
+                        final selected = provider.selectedProfile;
+                        provider.fetchAnalytics(
+                          profileId: selected?.id,
+                          profileType: selected?.type,
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDateSheetItem({
+    required BuildContext context,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.colorPurple.withOpacity(0.2) : Colors.white.withOpacity(0.04),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected ? AppColors.colorPurple.withOpacity(0.4) : Colors.white.withOpacity(0.08),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            child: Row(
+              children: [
+                Icon(
+                  isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+                  color: isSelected ? AppColors.colorPurple : AppColors.colorTextMuted,
+                  size: 18,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: isSelected ? AppColors.colorOffWhite : AppColors.colorOffWhite.withOpacity(0.8),
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      fontFamily: StringUtils.fontFamilyHeading,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

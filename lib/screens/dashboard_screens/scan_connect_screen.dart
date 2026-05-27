@@ -960,8 +960,26 @@ class _ContactCard extends StatelessWidget {
         return;
       }
       final c = contact;
+      String displayName = c.name;
+      try {
+        final existingContacts = await FlutterContacts.getContacts();
+        final existingNames = existingContacts
+            .map((ec) => ec.displayName.toLowerCase().trim())
+            .toSet();
+
+        int counter = 1;
+        String candidateName = displayName;
+        while (existingNames.contains(candidateName.toLowerCase().trim())) {
+          candidateName = '$displayName ($counter)';
+          counter++;
+        }
+        displayName = candidateName;
+      } catch (e) {
+        print("Error checking duplicate contacts: $e");
+      }
+
       final nc = Contact(
-        name: Name(first: c.name),
+        name: Name(first: displayName),
         phones: c.phone != null ? [Phone(number: c.phone!)] : [],
         emails: c.email != null ? [Email(address: c.email!)] : [],
         organizations: (c.company != null || c.designation != null)
@@ -972,7 +990,7 @@ class _ContactCard extends StatelessWidget {
       await FlutterContacts.create(nc);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('${c.name} saved'),
+            content: Text('$displayName saved'),
             backgroundColor: AppColors.colorPurple));
       }
     } catch (_) {
@@ -986,30 +1004,26 @@ class _ContactCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withOpacity(0.05),
-                Colors.white.withOpacity(0.02),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.08),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 12)
-            ],
-          ),
-          child: Padding(
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withOpacity(0.06),
+            Colors.white.withOpacity(0.02),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.08),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 12)
+        ],
+      ),
+      child: Padding(
             padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

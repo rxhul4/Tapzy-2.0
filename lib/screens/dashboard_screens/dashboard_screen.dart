@@ -87,6 +87,28 @@ class _DashboardScreenState extends State<DashboardScreen>
       );
       final decoded = json.decode(response);
       if (decoded['isSuccessful'] == true && mounted) {
+        final List data = decoded['data'] ?? [];
+        final now = DateTime.now();
+        
+        // Background cleanup: Delete notifications older than 7 days
+        for (var n in data) {
+          try {
+            final createdAtStr = n['created_at'];
+            if (createdAtStr != null) {
+              final createdAt = DateTime.parse(createdAtStr).toLocal();
+              if (now.difference(createdAt).inDays >= 7) {
+                final id = n['id'];
+                if (id != null) {
+                  callPostMethod(
+                    ApiConstants.deleteNotification,
+                    {'notification_id': id.toString()},
+                  ).catchError((_) {});
+                }
+              }
+            }
+          } catch (_) {}
+        }
+
         final unreadCount = decoded['unread_count'];
         bool hasUnread;
         if (unreadCount is int) {
@@ -95,7 +117,6 @@ class _DashboardScreenState extends State<DashboardScreen>
           hasUnread = int.tryParse(unreadCount) != null &&
               int.parse(unreadCount) > 0;
         } else {
-          final List data = decoded['data'] ?? [];
           hasUnread = data.any(
             (n) => n['is_read'] == 0 || n['is_read'] == false,
           );
@@ -168,35 +189,32 @@ class _DashboardScreenState extends State<DashboardScreen>
         height: 52,
       ),
       actions: [
-        if (_selectedIndex == 0)
+        if (_selectedIndex == 1)
           Padding(
-            padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
-            child: _GlassIconButton(
-              icon: Icons.notifications_outlined,
-              showBadge: _hasUnreadNotifications,
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const NotificationListingScreen(),
-                  ),
-                );
-                _checkUnreadNotifications();
-              },
-            ),
-          )
-        else if (_selectedIndex == 1)
-          Padding(
-            padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+            padding: const EdgeInsets.only(top: 8, bottom: 8),
             child: _GlassCreateButton(
               onTap: () => showDialog(
                 context: context,
                 builder: (_) => CommonDialog(selectedIndex: 1),
               ),
             ),
-          )
-        else
-          const SizedBox(width: 68),
+          ),
+        Padding(
+          padding: const EdgeInsets.only(right: 16, left: 8, top: 8, bottom: 8),
+          child: _GlassIconButton(
+            icon: Icons.notifications_outlined,
+            showBadge: _hasUnreadNotifications,
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const NotificationListingScreen(),
+                ),
+              );
+              _checkUnreadNotifications();
+            },
+          ),
+        ),
       ],
     );
   }

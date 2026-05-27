@@ -63,8 +63,23 @@ class _NotificationListingScreenState extends State<NotificationListingScreen> {
 
       if (decoded['isSuccessful'] == true) {
         final List data = decoded['data'] ?? [];
+        final now = DateTime.now();
+        final List<AppNotification> allNotifs = data.map((e) => AppNotification.fromJson(e)).toList();
+
+        // Background cleanup: Delete notifications older than 7 days on server
+        final toDelete = allNotifs.where((n) {
+          return now.difference(n.createdAt).inDays >= 7;
+        }).toList();
+
+        for (var n in toDelete) {
+          _deleteNotification(n.id);
+        }
+
         setState(() {
-          _notifications = data.map((e) => AppNotification.fromJson(e)).toList();
+          // Keep only notifications that are less than 7 days old
+          _notifications = allNotifs.where((n) {
+            return now.difference(n.createdAt).inDays < 7;
+          }).toList();
           _isLoading = false;
         });
       } else {
