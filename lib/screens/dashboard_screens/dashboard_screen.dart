@@ -82,6 +82,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       final title = message.notification?.title ?? 'Notification Received';
       final body = message.notification?.body ?? 'You have a new notification';
       _showInAppNotificationBanner(title, body);
+    } else {
+      setState(() {
+        _selectedIndex = 3;
+      });
     }
   }
 
@@ -97,6 +101,11 @@ class _DashboardScreenState extends State<DashboardScreen>
       builder: (context) => _TopNotificationBannerWidget(
         title: title,
         body: body,
+        onTap: () {
+          setState(() {
+            _selectedIndex = 3;
+          });
+        },
         onDismissed: () {
           if (entry != null && entry.mounted) {
             entry.remove();
@@ -193,10 +202,16 @@ class _DashboardScreenState extends State<DashboardScreen>
               extendBody: true,
               appBar: _buildAppBar(),
               body: kDebugMode
-                  ? _screens[_selectedIndex]
+                  ? IndexedStack(
+                      index: _selectedIndex,
+                      children: _screens,
+                    )
                   : UpgradeAlert(
                       upgrader: Upgrader(messages: CustomUpgraderMessage()),
-                      child: _screens[_selectedIndex],
+                      child: IndexedStack(
+                        index: _selectedIndex,
+                        children: _screens,
+                      ),
                     ),
               bottomNavigationBar: _buildBottomNav(),
             ),
@@ -239,22 +254,23 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
           ),
-        Padding(
-          padding: const EdgeInsets.only(right: 16, left: 8, top: 8, bottom: 8),
-          child: _GlassIconButton(
-            icon: Icons.notifications_outlined,
-            showBadge: _hasUnreadNotifications,
-            onTap: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const NotificationListingScreen(),
-                ),
-              );
-              _checkUnreadNotifications();
-            },
+        if (_selectedIndex == 0)
+          Padding(
+            padding: const EdgeInsets.only(right: 16, left: 8, top: 8, bottom: 8),
+            child: _GlassIconButton(
+              icon: Icons.notifications_outlined,
+              showBadge: _hasUnreadNotifications,
+              onTap: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const NotificationListingScreen(),
+                  ),
+                );
+                _checkUnreadNotifications();
+              },
+            ),
           ),
-        ),
       ],
     );
   }
@@ -857,12 +873,14 @@ class _GlassCreateButton extends StatelessWidget {
 class _TopNotificationBannerWidget extends StatefulWidget {
   final String title;
   final String body;
+  final VoidCallback onTap;
   final VoidCallback onDismissed;
 
   const _TopNotificationBannerWidget({
     Key? key,
     required this.title,
     required this.body,
+    required this.onTap,
     required this.onDismissed,
   }) : super(key: key);
 
@@ -939,7 +957,10 @@ class __TopNotificationBannerWidgetState extends State<_TopNotificationBannerWid
           child: Material(
             color: Colors.transparent,
             child: GestureDetector(
-              onTap: _dismiss,
+              onTap: () {
+                widget.onTap();
+                _dismiss();
+              },
               child: GlassContainer(
                 borderRadius: 16,
                 blur: 16,

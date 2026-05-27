@@ -58,9 +58,9 @@ class PushNotificationService {
 
       // Set presentation options to ensure badges and notifications trigger correctly in foreground
       await _firebaseMessaging.setForegroundNotificationPresentationOptions(
-        alert: true,
+        alert: false,
         badge: true,
-        sound: true,
+        sound: false,
       );
 
       if (kDebugMode) {

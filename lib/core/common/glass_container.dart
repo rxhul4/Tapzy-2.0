@@ -38,6 +38,29 @@ class GlassContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final tint = tintColor ?? AppColors.colorPurple;
 
+    final contentWidget = Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(borderRadius),
+        gradient: gradient ??
+            LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withValues(alpha: opacity + 0.04),
+                tint.withValues(alpha: opacity * 0.35),
+                Colors.white.withValues(alpha: opacity * 0.25),
+              ],
+            ),
+        border: border ??
+            Border.all(
+              color: Colors.white.withOpacity(0.12),
+              width: 1,
+            ),
+      ),
+      child: child,
+    );
+
     return Container(
       width: width,
       height: height,
@@ -60,31 +83,12 @@ class GlassContainer extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(borderRadius),
-              gradient: gradient ??
-                  LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.white.withValues(alpha: opacity + 0.04),
-                      tint.withValues(alpha: opacity * 0.35),
-                      Colors.white.withValues(alpha: opacity * 0.25),
-                    ],
-                  ),
-              border: border ??
-                  Border.all(
-                    color: Colors.white.withOpacity(0.12),
-                    width: 1,
-                  ),
-            ),
-            child: child,
-          ),
-        ),
+        child: blur > 0
+            ? BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+                child: contentWidget,
+              )
+            : contentWidget,
       ),
     );
   }
