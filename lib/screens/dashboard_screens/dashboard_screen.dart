@@ -10,6 +10,7 @@ import 'package:tapzy/core/constants/appColors.dart';
 import 'package:tapzy/core/constants/stringUtils.dart';
 import 'package:tapzy/core/network/network_repository.dart';
 import 'package:tapzy/core/common/commonBackground.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:tapzy/core/services/push_notification_service.dart';
 import 'package:tapzy/core/utils/preference_helper.dart';
 import 'package:tapzy/screens/dashboard_screens/my_card_screen.dart';
@@ -57,7 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    PushNotificationService.onForegroundMessage = _checkUnreadNotifications;
+    PushNotificationService.onForegroundMessage = _handleForegroundMessage;
     _selectedIndex = widget.selectedIndex ?? 0;
     _checkUnreadNotifications();
     PushNotificationService.registerDeviceToken();
@@ -66,10 +67,94 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    if (PushNotificationService.onForegroundMessage == _checkUnreadNotifications) {
+    if (PushNotificationService.onForegroundMessage == _handleForegroundMessage) {
       PushNotificationService.onForegroundMessage = null;
     }
     super.dispose();
+  }
+
+  void _handleForegroundMessage(RemoteMessage message, bool isForeground) {
+    _checkUnreadNotifications();
+    if (isForeground) {
+      final title = message.notification?.title ?? 'Notification Received';
+      final body = message.notification?.body ?? 'You have a new notification';
+      _showInAppNotificationBanner(title, body);
+    }
+  }
+
+  void _showInAppNotificationBanner(String title, String body) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 4),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        content: GlassContainer(
+          borderRadius: 16,
+          blur: 16,
+          opacity: 0.08,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          border: Border.all(
+            color: AppColors.colorPurple.withOpacity(0.35),
+            width: 1.2,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.colorPurple.withOpacity(0.18),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.colorPurple.withOpacity(0.4),
+                    width: 1,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.notifications_active_rounded,
+                  color: AppColors.colorPurple,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontFamily: StringUtils.fontFamilyHeading,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13.5,
+                        color: AppColors.colorOffWhite,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      body,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: StringUtils.fontFamilyPara,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 11.5,
+                        color: AppColors.colorTextMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override

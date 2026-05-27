@@ -22,7 +22,7 @@ class PushNotificationService {
       FirebaseMessaging.instance;
 
   /// Called when a push arrives while the app is in the foreground (e.g. contact shared).
-  static VoidCallback? onForegroundMessage;
+  static void Function(RemoteMessage message, bool isForeground)? onForegroundMessage;
 
   static Future<void> initialize() async {
     try {
@@ -66,7 +66,7 @@ class PushNotificationService {
           print('Got a message whilst in the foreground!');
           print('Message data: ${message.data}');
         }
-        onForegroundMessage?.call();
+        onForegroundMessage?.call(message, true);
       });
 
       // Handle message clicks when app is in background or closed
@@ -74,7 +74,7 @@ class PushNotificationService {
         if (kDebugMode) {
           print('Notification clicked / opened the app!');
         }
-        onForegroundMessage?.call();
+        onForegroundMessage?.call(message, false);
       });
     } catch (e) {
       if (kDebugMode) {
