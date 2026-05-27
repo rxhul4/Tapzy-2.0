@@ -15,8 +15,9 @@ class AppUtils {
     required BuildContext context,
     required Widget child,
   }) {
-    if (kIsWeb) {
-      return Container(
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
         padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
         decoration: BoxDecoration(
           color: AppColors.colorMainBlack,
@@ -24,41 +25,14 @@ class AppUtils {
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
-          border: Border(
-            top: BorderSide(color: Colors.white.withOpacity(0.15), width: 1.2),
-            left: BorderSide(color: Colors.white.withOpacity(0.08), width: 0.8),
-            right: BorderSide(color: Colors.white.withOpacity(0.08), width: 0.8),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.12),
+            width: 1.0,
           ),
         ),
         child: child,
-      );
-    } else {
-      return ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
-            decoration: BoxDecoration(
-              color: AppColors.colorMainBlack.withOpacity(0.55),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
-              ),
-              border: Border(
-                top: BorderSide(color: Colors.white.withOpacity(0.15), width: 1.2),
-                left: BorderSide(color: Colors.white.withOpacity(0.08), width: 0.8),
-                right: BorderSide(color: Colors.white.withOpacity(0.08), width: 0.8),
-              ),
-            ),
-            child: child,
-          ),
-        ),
-      );
-    }
+      ),
+    );
   }
 
   static final List<String> filters = [

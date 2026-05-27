@@ -26,7 +26,7 @@ class PushNotificationService {
 
   static Future<void> initialize() async {
     try {
-      if (Platform.isIOS) {
+      if (!kIsWeb && Platform.isIOS) {
         await Firebase.initializeApp(
           options: const FirebaseOptions(
             apiKey: 'AIzaSyDlH6HA3A16ctWLpRnr-U27i-3Fzh6S_wk',
@@ -53,6 +53,13 @@ class PushNotificationService {
         carPlay: false,
         criticalAlert: false,
         provisional: false,
+        sound: true,
+      );
+
+      // Set presentation options to ensure badges and notifications trigger correctly in foreground
+      await _firebaseMessaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
         sound: true,
       );
 

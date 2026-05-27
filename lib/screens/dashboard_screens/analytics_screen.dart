@@ -398,6 +398,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       backgroundColor: Colors.transparent,
       elevation: 0,
       context: context,
+      builder: (context) {
         return AppUtils.buildSheetWrapper(
           context: context,
           child: Column(
@@ -419,6 +420,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               _buildProfileSheetItem(
                 context: context,
                 label: 'All Profiles',
+                type: null,
                 isSelected: selected == null,
                 onTap: () {
                   provider.setSelectedProfile(null);
@@ -440,6 +442,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       return _buildProfileSheetItem(
                         context: context,
                         label: profile.label ?? profile.type ?? 'Profile',
+                        type: profile.type,
                         isSelected: isSelected,
                         onTap: () {
                           provider.setSelectedProfile(profile);
@@ -463,43 +466,130 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Widget _buildProfileSheetItem({
     required BuildContext context,
     required String label,
+    required String? type,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    IconData getIconForType(String? t) {
+      if (t == null) return Icons.grid_view_rounded;
+      switch (t.toLowerCase()) {
+        case 'business':
+          return Icons.business_center_rounded;
+        case 'personal':
+          return Icons.person_rounded;
+        case 'instagram':
+          return Icons.camera_alt_outlined;
+        case 'spotify':
+          return Icons.music_note_rounded;
+        case 'youtube':
+          return Icons.play_circle_outline_rounded;
+        case 'linkedin':
+          return Icons.work_outline_rounded;
+        default:
+          return Icons.credit_card_rounded;
+      }
+    }
+
+    String getSubtitleForType(String? t) {
+      if (t == null) return 'View analytics for all active cards';
+      switch (t.toLowerCase()) {
+        case 'business':
+          return 'Business Profile';
+        case 'personal':
+          return 'Personal Profile';
+        default:
+          return '${t[0].toUpperCase()}${t.substring(1)} Channel';
+      }
+    }
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         child: Ink(
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.colorPurple.withOpacity(0.2) : Colors.white.withOpacity(0.04),
-            borderRadius: BorderRadius.circular(14),
+            color: isSelected
+                ? AppColors.colorPurple.withOpacity(0.12)
+                : Colors.white.withOpacity(0.03),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isSelected ? AppColors.colorPurple.withOpacity(0.4) : Colors.white.withOpacity(0.08),
+              color: isSelected
+                  ? AppColors.colorPurple.withOpacity(0.5)
+                  : Colors.white.withOpacity(0.08),
+              width: isSelected ? 1.5 : 1.0,
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            padding: const EdgeInsets.all(14),
             child: Row(
               children: [
-                Icon(
-                  isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
-                  color: isSelected ? AppColors.colorPurple : AppColors.colorTextMuted,
-                  size: 18,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      color: isSelected ? AppColors.colorOffWhite : AppColors.colorOffWhite.withOpacity(0.8),
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      fontFamily: StringUtils.fontFamilyHeading,
-                      fontSize: 14,
+                // Icon wrapper
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.colorPurple.withOpacity(0.2)
+                        : Colors.white.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppColors.colorPurple.withOpacity(0.4)
+                          : Colors.white.withOpacity(0.08),
                     ),
                   ),
+                  child: Icon(
+                    getIconForType(type),
+                    color: isSelected ? AppColors.colorPurple : AppColors.colorTextMuted,
+                    size: 20,
+                  ),
                 ),
+                const SizedBox(width: 14),
+                // Text details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        label,
+                        style: TextStyle(
+                          color: AppColors.colorOffWhite,
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                          fontFamily: StringUtils.fontFamilyHeading,
+                          fontSize: 14,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        getSubtitleForType(type),
+                        style: TextStyle(
+                          color: AppColors.colorTextMuted,
+                          fontFamily: StringUtils.fontFamilyPara,
+                          fontSize: 11,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Selection checkmark
+                if (isSelected)
+                  Container(
+                    width: 22,
+                    height: 22,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: AppColors.gradientPurple,
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -513,6 +603,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       backgroundColor: Colors.transparent,
       elevation: 0,
       context: context,
+      builder: (context) {
         return AppUtils.buildSheetWrapper(
           context: context,
           child: Column(

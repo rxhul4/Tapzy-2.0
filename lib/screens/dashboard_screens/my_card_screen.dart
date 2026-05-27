@@ -1369,6 +1369,7 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         context: context,
+        builder: (sheetCtx) {
           return AppUtils.buildSheetWrapper(
             context: sheetCtx,
             child: Column(
@@ -1490,6 +1491,7 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         context: context,
+        builder: (sheetCtx) {
           return AppUtils.buildSheetWrapper(
             context: sheetCtx,
             child: Column(

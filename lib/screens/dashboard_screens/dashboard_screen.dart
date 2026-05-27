@@ -53,6 +53,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   ];
 
   bool _hasUnreadNotifications = false;
+  OverlayEntry? _currentBannerEntry;
 
   @override
   void initState() {
@@ -70,6 +71,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (PushNotificationService.onForegroundMessage == _handleForegroundMessage) {
       PushNotificationService.onForegroundMessage = null;
     }
+    _currentBannerEntry?.remove();
+    _currentBannerEntry = null;
     super.dispose();
   }
 
@@ -84,77 +87,29 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   void _showInAppNotificationBanner(String title, String body) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        duration: const Duration(seconds: 4),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        content: GlassContainer(
-          borderRadius: 16,
-          blur: 16,
-          opacity: 0.08,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          border: Border.all(
-            color: AppColors.colorPurple.withOpacity(0.35),
-            width: 1.2,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.colorPurple.withOpacity(0.18),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.colorPurple.withOpacity(0.4),
-                    width: 1,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.notifications_active_rounded,
-                  color: AppColors.colorPurple,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontFamily: StringUtils.fontFamilyHeading,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13.5,
-                        color: AppColors.colorOffWhite,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      body,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontFamily: StringUtils.fontFamilyPara,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 11.5,
-                        color: AppColors.colorTextMuted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+
+    // Dismiss the previous banner if active
+    _currentBannerEntry?.remove();
+    _currentBannerEntry = null;
+
+    OverlayEntry? entry;
+    entry = OverlayEntry(
+      builder: (context) => _TopNotificationBannerWidget(
+        title: title,
+        body: body,
+        onDismissed: () {
+          if (entry != null && entry.mounted) {
+            entry.remove();
+            if (_currentBannerEntry == entry) {
+              _currentBannerEntry = null;
+            }
+          }
+        },
       ),
     );
+
+    _currentBannerEntry = entry;
+    Overlay.of(context).insert(entry);
   }
 
   @override
@@ -893,6 +848,161 @@ class _GlassCreateButton extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TopNotificationBannerWidget extends StatefulWidget {
+  final String title;
+  final String body;
+  final VoidCallback onDismissed;
+
+  const _TopNotificationBannerWidget({
+    Key? key,
+    required this.title,
+    required this.body,
+    required this.onDismissed,
+  }) : super(key: key);
+
+  @override
+  State<_TopNotificationBannerWidget> createState() =>
+      __TopNotificationBannerWidgetState();
+}
+
+class __TopNotificationBannerWidgetState extends State<_TopNotificationBannerWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _offsetAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+
+    _offsetAnimation = Tween<Offset>(
+      begin: const Offset(0, -1.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeIn,
+    ));
+
+    _controller.forward();
+
+    // Auto dismiss after 4 seconds
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted) {
+        _dismiss();
+      }
+    });
+  }
+
+  void _dismiss() {
+    if (mounted) {
+      _controller.reverse().then((_) {
+        widget.onDismissed();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double topPadding = MediaQuery.of(context).padding.top + 12;
+    return Positioned(
+      top: topPadding,
+      left: 16,
+      right: 16,
+      child: SlideTransition(
+        position: _offsetAnimation,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Material(
+            color: Colors.transparent,
+            child: GestureDetector(
+              onTap: _dismiss,
+              child: GlassContainer(
+                borderRadius: 16,
+                blur: 16,
+                opacity: 0.08,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                border: Border.all(
+                  color: AppColors.colorPurple.withOpacity(0.35),
+                  width: 1.2,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.colorPurple.withOpacity(0.18),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.colorPurple.withOpacity(0.4),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.notifications_active_rounded,
+                        color: AppColors.colorPurple,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.title,
+                            style: TextStyle(
+                              fontFamily: StringUtils.fontFamilyHeading,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13.5,
+                              color: AppColors.colorOffWhite,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.body,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontFamily: StringUtils.fontFamilyPara,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 11.5,
+                              color: AppColors.colorTextMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
