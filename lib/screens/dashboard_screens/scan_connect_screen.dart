@@ -962,9 +962,9 @@ class _ContactCard extends StatelessWidget {
       final c = contact;
       String displayName = c.name;
       try {
-        final existingContacts = await FlutterContacts.getContacts();
+        final existingContacts = await FlutterContacts.getAll();
         final existingNames = existingContacts
-            .map((ec) => ec.displayName.toLowerCase().trim())
+            .map((ec) => (ec.displayName ?? '').toLowerCase().trim())
             .toSet();
 
         int counter = 1;
@@ -1201,10 +1201,8 @@ class _ContactCard extends StatelessWidget {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
+        );
+      }
 
   void _confirmDelete(BuildContext context) {
     ConfirmationDialog.show(
