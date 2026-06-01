@@ -22,6 +22,8 @@ import 'package:tapzy/models/edit_business_card_model.dart';
 import 'package:tapzy/models/get_business_card_by_id_model.dart';
 import 'package:tapzy/providers/profiles_provider.dart';
 import 'package:tapzy/screens/dashboard_screens/dashboard_screen.dart';
+import 'package:tapzy/screens/profiles/image_crop_screen.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../core/common/color_picker.dart';
 
@@ -139,10 +141,6 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
                 getBusinessCardByIdModel?.data?.customLinkLabel ?? '';
             customLinkController.text =
                 getBusinessCardByIdModel?.data?.customLink ?? '';
-            skypeController.text =
-                getBusinessCardByIdModel?.data?.skypeUsername ?? '';
-            hangoutController.text =
-                getBusinessCardByIdModel?.data?.hangoutsUsername ?? '';
             twitterController.text =
                 getBusinessCardByIdModel?.data?.twitterUsername ?? '';
             linkedInController.text =
@@ -201,8 +199,6 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
   TextEditingController cloudController = TextEditingController();
   TextEditingController customLinkLabelController = TextEditingController();
   TextEditingController customLinkController = TextEditingController();
-  TextEditingController skypeController = TextEditingController();
-  TextEditingController hangoutController = TextEditingController();
   TextEditingController twitterController = TextEditingController();
   TextEditingController linkedInController = TextEditingController();
   TextEditingController fbController = TextEditingController();
@@ -226,140 +222,100 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
   File? _companyLogo;
   DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
 
-  // Future getImage() async {
-  //   var image =
-  //       await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-  //   if (image?.path != null) {
-  //     setState(() {
-  //       _image = File(image?.path ?? '');
-  //     });
-  //   }
-  // }
-  Future getImage() async {
-    // var status1 = await Permission.storage.request();
-    // var status = await Permission.manageExternalStorage.request();
-    // if(status1.isDenied || status1.isPermanentlyDenied || status.isDenied || status.isPermanentlyDenied){
-    //   openAppSettings();
-    // }else{
-    //   var image =
-    //   await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-    //   if (image?.path != null) {
-    //     setState(() {
-    //       _image = File(image?.path ?? '');
-    //     });
-    //   }
-    // }
+  Future<void> _pickAndCropImage({
+    required double aspectRatio,
+    required String title,
+    required Function(File) onSelect,
+    required Permission permission,
+    required String permissionMsg,
+  }) async {
+    bool hasPermission = false;
     if (Platform.isIOS) {
-      var status1 = await Permission.photos.request();
-      if (status1.isDenied || status1.isPermanentlyDenied) {
-        print(status1.isPermanentlyDenied);
-        print(status1.isDenied);
-        AppUtils.openAppSettingsPermissionDialog(
-            ctxx: context,
-            msg:
-                "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Photos' and enable access for our app");
+      var status = await permission.request();
+      hasPermission = !status.isDenied && !status.isPermanentlyDenied;
+    } else {
+      final deviceInformation = await deviceInfo.androidInfo;
+      if (deviceInformation.version.sdkInt > 32 && permission == Permission.storage) {
+        var status = await Permission.photos.request();
+        hasPermission = status.isGranted;
       } else {
-        print(status1.isPermanentlyDenied);
-        print(status1.isDenied);
-        var image =
-            await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-        if (image?.path != null) {
-          setState(() {
-            _image = File(image?.path ?? '');
-          });
+        var status = await permission.request();
+        hasPermission = status.isGranted;
+      }
+    }
+
+    if (hasPermission) {
+      var image = await ImagePicker.platform.pickImage(source: ImageSource.gallery);
+      if (image?.path != null) {
+        final bytes = await File(image!.path).readAsBytes();
+        if (!mounted) return;
+        final croppedBytes = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ImageCropScreen(
+              imageBytes: bytes,
+              aspectRatio: aspectRatio,
+              title: title,
+            ),
+          ),
+        );
+        if (croppedBytes != null) {
+          final tempDir = await getTemporaryDirectory();
+          final file = await File('${tempDir.path}/cropped_${DateTime.now().millisecondsSinceEpoch}.jpg').create();
+          await file.writeAsBytes(croppedBytes);
+          onSelect(file);
         }
       }
     } else {
-      final deviceInformation = await deviceInfo.androidInfo;
-      if (deviceInformation.version.sdkInt > 32) {
-        var status = await Permission.photos.request();
-        if (status.isGranted) {
-          var image =
-              await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-          if (image?.path != null) {
-            setState(() {
-              _image = File(image?.path ?? '');
-            });
-          }
-        } else {
-          AppUtils.openAppSettingsPermissionDialog(
-              ctxx: context,
-              msg:
-                  "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Photos' and enable access for our app");
-        }
-      } else {
-        var status1 = await Permission.storage.request();
-        if (status1.isGranted) {
-          var image =
-              await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-          if (image?.path != null) {
-            setState(() {
-              _image = File(image?.path ?? '');
-            });
-          }
-        } else {
-          AppUtils.openAppSettingsPermissionDialog(
-              ctxx: context,
-              msg:
-                  "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Storage' and enable access for our app");
-        }
-      }
+      AppUtils.openAppSettingsPermissionDialog(
+        ctxx: context,
+        msg: permissionMsg,
+      );
     }
   }
 
+  Future getImage() async {
+    final androidSdk = Platform.isAndroid ? (await deviceInfo.androidInfo).version.sdkInt : 0;
+    final perm = Platform.isIOS ? Permission.photos : (androidSdk > 32 ? Permission.photos : Permission.storage);
+    final msg = Platform.isIOS ? 
+        "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Photos' and enable access for our app" :
+        (androidSdk > 32 ? 
+            "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Photos' and enable access for our app" :
+            "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Storage' and enable access for our app");
+            
+    await _pickAndCropImage(
+      aspectRatio: 3 / 4,
+      title: "Crop Profile Photo",
+      onSelect: (file) {
+        setState(() {
+          _image = file;
+        });
+      },
+      permission: perm,
+      permissionMsg: msg,
+    );
+  }
+
   Future getCompanyLogo() async {
-    if (Platform.isIOS) {
-      var status1 = await Permission.photos.request();
-      if (status1.isDenied || status1.isPermanentlyDenied) {
-        AppUtils.openAppSettingsPermissionDialog(
-            ctxx: context,
-            msg:
-                "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Photos' and enable access for our app");
-      } else {
-        var image =
-            await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-        if (image?.path != null) {
-          setState(() {
-            _companyLogo = File(image?.path ?? '');
-          });
-        }
-      }
-    } else {
-      final deviceInformation = await deviceInfo.androidInfo;
-      if (deviceInformation.version.sdkInt > 32) {
-        var status = await Permission.photos.request();
-        if (status.isGranted) {
-          var image =
-              await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-          if (image?.path != null) {
-            setState(() {
-              _companyLogo = File(image?.path ?? '');
-            });
-          }
-        } else {
-          AppUtils.openAppSettingsPermissionDialog(
-              ctxx: context,
-              msg:
-                  "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Photos' and enable access for our app");
-        }
-      } else {
-        var status1 = await Permission.storage.request();
-        if (status1.isGranted) {
-          var image =
-              await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-          if (image?.path != null) {
-            setState(() {
-              _companyLogo = File(image?.path ?? '');
-            });
-          }
-        } else {
-          AppUtils.openAppSettingsPermissionDialog(
-              ctxx: context,
-              msg:
-                  "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Storage' and enable access for our app");
-        }
-      }
-    }
+    final androidSdk = Platform.isAndroid ? (await deviceInfo.androidInfo).version.sdkInt : 0;
+    final perm = Platform.isIOS ? Permission.photos : (androidSdk > 32 ? Permission.photos : Permission.storage);
+    final msg = Platform.isIOS ? 
+        "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Photos' and enable access for our app" :
+        (androidSdk > 32 ? 
+            "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Photos' and enable access for our app" :
+            "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Storage' and enable access for our app");
+            
+    await _pickAndCropImage(
+      aspectRatio: 1.0,
+      title: "Crop Company Logo",
+      onSelect: (file) {
+        setState(() {
+          _companyLogo = file;
+        });
+      },
+      permission: perm,
+      permissionMsg: msg,
+    );
   }
 
   AddBusinessModel? addBusinessModel;
@@ -395,7 +351,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
         experience_detail: expController.text,
         facebook_username: fbController.text,
         gpay_number_upi: gpayController.text,
-        hangouts_username: hangoutController.text,
+        hangouts_username: "",
         hobbies_detail: hobController.text,
         industry: industryController.text,
         info_detail: infoController.text,
@@ -404,7 +360,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
         // paypal_number_upi: paypalController.text,
         paytm_number_upi: paytmController.text,
         services: servicesController.text,
-        skype_username: skypeController.text,
+        skype_username: "",
         twitter_username: twitterController.text,
         website_links: webController.text,
         profile_primary_color: '#' + selectedColor.value.toRadixString(16).substring(2).toUpperCase(),
@@ -464,7 +420,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
         experience_detail: expController.text,
         facebook_username: fbController.text,
         gpay_number_upi: gpayController.text,
-        hangouts_username: hangoutController.text,
+        hangouts_username: "",
         hobbies_detail: hobController.text,
         industry: industryController.text,
         info_detail: infoController.text,
@@ -473,7 +429,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
         // paypal_number_upi: paypalController.text,
         paytm_number_upi: paytmController.text,
         services: servicesController.text,
-        skype_username: skypeController.text,
+        skype_username: "",
         twitter_username: twitterController.text,
         website_links: webController.text,
         profile_primary_color: '#' + selectedColor.value.toRadixString(16).substring(2).toUpperCase(),
@@ -556,7 +512,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
         experience_detail: expController.text,
         facebook_username: fbController.text,
         gpay_number_upi: gpayController.text,
-        hangouts_username: hangoutController.text,
+        hangouts_username: "",
         hobbies_detail: hobController.text,
         industry: industryController.text,
         info_detail: infoController.text,
@@ -565,7 +521,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
         // paypal_number_upi: paypalController.text,
         paytm_number_upi: paytmController.text,
         services: servicesController.text,
-        skype_username: skypeController.text,
+        skype_username: "",
         twitter_username: twitterController.text,
         website_links: webController.text,
         profile_primary_color: '#' + selectedColor.value.toRadixString(16).substring(2).toUpperCase(),
@@ -627,7 +583,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
         experience_detail: expController.text,
         facebook_username: fbController.text,
         gpay_number_upi: gpayController.text,
-        hangouts_username: hangoutController.text,
+        hangouts_username: "",
         hobbies_detail: hobController.text,
         industry: industryController.text,
         info_detail: infoController.text,
@@ -636,7 +592,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
         // paypal_number_upi: paypalController.text,
         paytm_number_upi: paytmController.text,
         services: servicesController.text,
-        skype_username: skypeController.text,
+        skype_username: "",
         twitter_username: twitterController.text,
         website_links: webController.text,
         profile_primary_color: '#' + selectedColor.value.toRadixString(16).substring(2).toUpperCase(),
@@ -737,27 +693,13 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
                                     context: context,
                                     message:
                                         "Please enter a valid Custom link");
-                              } else if (Uri.parse(skypeController.text).isAbsolute &&
-                                  skypeController.text.isNotEmpty) {
-                                AppUtils.showSnackBarWithColor(
-                                    giveColor: Colors.redAccent,
-                                    context: context,
-                                    message:
-                                        "Please enter a valid Skype username");
-                              } else if (Uri.parse(hangoutController.text).isAbsolute &&
-                                  hangoutController.text.isNotEmpty) {
-                                AppUtils.showSnackBarWithColor(
-                                    giveColor: Colors.redAccent,
-                                    context: context,
-                                    message:
-                                        "Please enter a valid Hangout username");
                               } else if (Uri.parse(twitterController.text).isAbsolute &&
                                   twitterController.text.isNotEmpty) {
                                 AppUtils.showSnackBarWithColor(
                                     giveColor: Colors.redAccent,
                                     context: context,
                                     message:
-                                        "Please enter a valid Twitter username");
+                                        "Please enter a valid Twitter (X) username");
                               } else if (Uri.parse(linkedInController.text)
                                       .isAbsolute &&
                                   linkedInController.text.isNotEmpty) {
@@ -1292,21 +1234,9 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
                               title: "Social Media",
                               children: [
                                 textField(
-                                  hintText: "Skype username",
-                                  controller: skypeController,
-                                  suffixIcon: commonSuffixIcon(icon: FontAwesomeIcons.skype),
-                                ),
-                                AppUtils.commonSizedBox(height: 10),
-                                textField(
-                                  hintText: "Hangout username",
-                                  controller: hangoutController,
-                                  suffixIcon: commonSuffixIcon(isSvg: true, svgPath: "assets/svgs/hangout1.svg"),
-                                ),
-                                AppUtils.commonSizedBox(height: 10),
-                                textField(
-                                  hintText: "Twitter username",
+                                  hintText: "Twitter (X) username",
                                   controller: twitterController,
-                                  suffixIcon: commonSuffixIcon(icon: FontAwesomeIcons.twitter),
+                                  suffixIcon: commonSuffixIcon(icon: FontAwesomeIcons.xTwitter),
                                 ),
                                 AppUtils.commonSizedBox(height: 10),
                                 textField(

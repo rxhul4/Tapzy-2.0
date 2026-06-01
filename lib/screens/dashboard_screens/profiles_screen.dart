@@ -12,6 +12,7 @@ import 'package:tapzy/models/delete_card_model.dart';
 import 'package:tapzy/models/get_digital_card_model.dart';
 import 'package:tapzy/providers/profiles_provider.dart';
 import 'package:tapzy/screens/profiles/business_profile_screen.dart';
+import 'package:tapzy/core/common/commonDialog.dart';
 
 class ProfilesScreen extends StatefulWidget {
   const ProfilesScreen({Key? key}) : super(key: key);
@@ -108,6 +109,38 @@ class _ProfilesScreenState extends State<ProfilesScreen>
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 75),
+        child: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: AppColors.gradientPurple,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.colorPurple.withOpacity(0.45),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: RawMaterialButton(
+            shape: const CircleBorder(),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => CommonDialog(selectedIndex: 1),
+              );
+            },
+            child: const Icon(
+              Icons.add_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+        ),
+      ),
       body: Stack(
         fit: StackFit.expand,
         children: [
