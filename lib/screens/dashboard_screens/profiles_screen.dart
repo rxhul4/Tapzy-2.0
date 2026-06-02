@@ -388,36 +388,43 @@ class _ProfileCard extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(11),
-                  child: CachedNetworkImage(
-                    imageUrl: card.cardImage ?? '',
-                    fit: card.isImageSet == 1 ? BoxFit.cover : BoxFit.contain,
-                    imageBuilder: (context, imageProvider) => Padding(
-                      padding: EdgeInsets.all(card.isImageSet == 1 ? 0 : 8),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                              image: imageProvider,
-                              fit: card.isImageSet == 1
-                                  ? BoxFit.cover
-                                  : BoxFit.contain),
+                  child: (card.cardImage == null || card.cardImage!.isEmpty || card.isImageSet != 1)
+                      ? Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Image.asset(
+                            AppUtils.setIconByType(card.type ?? ''),
+                            fit: BoxFit.contain,
+                          ),
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: card.cardImage!,
+                          fit: BoxFit.cover,
+                          imageBuilder: (context, imageProvider) => Container(
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: imageProvider,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          placeholder: (context, url) => const Center(
+                            child: SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                color: AppColors.colorPurple,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Image.asset(
+                              AppUtils.setIconByType(card.type ?? ''),
+                              fit: BoxFit.contain,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    placeholder: (context, url) => const Center(
-                      child: SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          color: AppColors.colorPurple,
-                          strokeWidth: 2,
-                        ),
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => const Icon(
-                        Icons.image_not_supported_outlined,
-                        color: AppColors.colorTextMuted,
-                        size: 20),
-                  ),
                 ),
               ),
               const SizedBox(width: 14),
