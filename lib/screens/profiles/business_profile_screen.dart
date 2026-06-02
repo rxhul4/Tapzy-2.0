@@ -305,17 +305,33 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
             "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Photos' and enable access for our app" :
             "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Storage' and enable access for our app");
             
-    await _pickAndCropImage(
-      aspectRatio: 1.0,
-      title: "Crop Company Logo",
-      onSelect: (file) {
+    bool hasPermission = false;
+    if (Platform.isIOS) {
+      var status = await perm.request();
+      hasPermission = !status.isDenied && !status.isPermanentlyDenied;
+    } else {
+      if (androidSdk > 32) {
+        var status = await Permission.photos.request();
+        hasPermission = status.isGranted;
+      } else {
+        var status = await perm.request();
+        hasPermission = status.isGranted;
+      }
+    }
+
+    if (hasPermission) {
+      var image = await ImagePicker.platform.pickImage(source: ImageSource.gallery);
+      if (image?.path != null) {
         setState(() {
-          _companyLogo = file;
+          _companyLogo = File(image!.path);
         });
-      },
-      permission: perm,
-      permissionMsg: msg,
-    );
+      }
+    } else {
+      AppUtils.openAppSettingsPermissionDialog(
+        ctxx: context,
+        msg: msg,
+      );
+    }
   }
 
   AddBusinessModel? addBusinessModel;
