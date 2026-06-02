@@ -39,7 +39,7 @@ dependencies:
   camera: ^0.12.0+1
   firebase_core: ^4.9.0
   firebase_messaging: ^16.2.2
-  crop_your_image: ^0.9.0
+  crop_your_image: ^1.0.2
   path_provider: ^2.1.0
 
 dev_dependencies:
