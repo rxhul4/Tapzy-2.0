@@ -604,6 +604,8 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                                                                   children: [
                                                                     AppUtils
                                                                         .commonContainer(
+                                                                      height: 80,
+                                                                      width: 80,
                                                                       decoration:
                                                                           AppUtils
                                                                               .commonBoxDecoration(
@@ -618,37 +620,41 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                                                                       ),
                                                                       child:
                                                                            ClipOval(
-                                                                         child: (cardImage == null || cardImage.isEmpty || !isImageSet)
-                                                                             ? Padding(
-                                                                                 padding: const EdgeInsets.all(18),
-                                                                                 child: Image.asset(
-                                                                                   AppUtils.setIconByType(cardType),
-                                                                                   fit: BoxFit.contain,
-                                                                                 ),
-                                                                               )
-                                                                             : CachedNetworkImage(
-                                                                                 fit: BoxFit.cover,
-                                                                                 height: 80,
-                                                                                 width: 80,
-                                                                                 imageUrl: cardImage,
-                                                                                 imageBuilder: (context, imageProvider) => Container(
-                                                                                   decoration: BoxDecoration(
-                                                                                     image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
-                                                                                   ),
-                                                                                 ),
-                                                                                 placeholder: (context, url) => Center(
-                                                                                     child: CircularProgressIndicator(
-                                                                                   color: AppColors.colorPurple,
-                                                                                   strokeWidth: 1.5,
-                                                                                 )),
-                                                                                 errorWidget: (context, url, error) => Padding(
+                                                                         child: SizedBox(
+                                                                           width: 80,
+                                                                           height: 80,
+                                                                           child: (cardImage == null || cardImage.isEmpty || !isImageSet)
+                                                                               ? Padding(
                                                                                    padding: const EdgeInsets.all(18),
                                                                                    child: Image.asset(
                                                                                      AppUtils.setIconByType(cardType),
                                                                                      fit: BoxFit.contain,
                                                                                    ),
+                                                                                 )
+                                                                               : CachedNetworkImage(
+                                                                                   fit: BoxFit.cover,
+                                                                                   height: 80,
+                                                                                   width: 80,
+                                                                                   imageUrl: cardImage,
+                                                                                   imageBuilder: (context, imageProvider) => Container(
+                                                                                     decoration: BoxDecoration(
+                                                                                       image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                                                                     ),
+                                                                                   ),
+                                                                                   placeholder: (context, url) => Center(
+                                                                                       child: CircularProgressIndicator(
+                                                                                     color: AppColors.colorPurple,
+                                                                                     strokeWidth: 1.5,
+                                                                                   )),
+                                                                                   errorWidget: (context, url, error) => Padding(
+                                                                                     padding: const EdgeInsets.all(18),
+                                                                                     child: Image.asset(
+                                                                                       AppUtils.setIconByType(cardType),
+                                                                                       fit: BoxFit.contain,
+                                                                                     ),
+                                                                                   ),
                                                                                  ),
-                                                                               ),
+                                                                         ),
                                                                        ),),
                                                                     Positioned(
                                                                       bottom:
