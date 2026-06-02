@@ -61,8 +61,7 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
                       Navigator.pop(context, croppedData);
                     },
                     aspectRatio: widget.aspectRatio,
-                    withAreaScale: true,
-                    initialAreaScale: 0.9,
+                    initialSize: 0.9,
                     baseColor: Colors.black.withOpacity(0.8),
                     maskColor: Colors.black.withOpacity(0.5),
                     cornerDotBuilder: (size, edgeAlignment) => const DotControl(color: AppColors.colorPurple),

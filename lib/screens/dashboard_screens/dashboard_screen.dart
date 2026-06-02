@@ -246,7 +246,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       actions: [
         if (_selectedIndex == 1)
           Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 8),
+            padding: const EdgeInsets.only(right: 16, left: 8, top: 8, bottom: 8),
             child: _GlassCreateButton(
               onTap: () => showDialog(
                 context: context,
