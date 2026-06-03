@@ -110,7 +110,7 @@ class _ProfilesScreenState extends State<ProfilesScreen>
     return Scaffold(
       backgroundColor: Colors.transparent,
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 75),
+        padding: const EdgeInsets.only(bottom: 95),
         child: Container(
           width: 56,
           height: 56,

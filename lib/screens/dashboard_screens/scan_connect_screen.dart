@@ -91,7 +91,7 @@ class _ScanConnectScreenState extends State<ScanConnectScreen>
     return Scaffold(
       backgroundColor: Colors.transparent,
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 84.0),
+        padding: const EdgeInsets.only(bottom: 95.0),
         child: _ScanCardFab(onTap: () => _showScanDialog(context)),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -1428,13 +1428,30 @@ class _EditContactSheetState extends State<_EditContactSheet> {
     return Padding(
       padding:
           EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.colorCard,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-        child: Column(
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withOpacity(0.08),
+                  AppColors.colorPurple.withOpacity(0.03),
+                  Colors.white.withOpacity(0.02),
+                ],
+              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border(
+                top: BorderSide(color: Colors.white.withOpacity(0.12), width: 1),
+                left: BorderSide(color: Colors.white.withOpacity(0.12), width: 1),
+                right: BorderSide(color: Colors.white.withOpacity(0.12), width: 1),
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+            child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1549,7 +1566,9 @@ class _EditContactSheetState extends State<_EditContactSheet> {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }
 

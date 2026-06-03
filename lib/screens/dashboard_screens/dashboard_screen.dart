@@ -795,6 +795,7 @@ class _GlassIconButton extends StatelessWidget {
         padding: EdgeInsets.zero,
         width: 40,
         height: 40,
+        hideBoxShadow: true,
         child: Stack(
           alignment: Alignment.center,
           clipBehavior: Clip.none,
@@ -845,13 +846,6 @@ class _GlassCreateButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           gradient: AppColors.gradientPurple,
           border: Border.all(color: Colors.white.withOpacity(0.22)),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.colorPurple.withOpacity(0.45),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
