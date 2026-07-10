@@ -2,13 +2,11 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:tapzy/core/constants/apiConstants.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:tapzy/core/capitlize_string.dart';
 import 'package:tapzy/core/common/commonBackground.dart';
@@ -220,69 +218,38 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
 
   File? _image;
   File? _companyLogo;
-  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
 
   Future<void> _pickAndCropImage({
     required double aspectRatio,
     required String title,
     required Function(File) onSelect,
-    required Permission permission,
-    required String permissionMsg,
   }) async {
-    bool hasPermission = false;
-    if (Platform.isIOS) {
-      var status = await permission.request();
-      hasPermission = !status.isDenied && !status.isPermanentlyDenied;
-    } else {
-      final deviceInformation = await deviceInfo.androidInfo;
-      if (deviceInformation.version.sdkInt > 32 && permission == Permission.storage) {
-        var status = await Permission.photos.request();
-        hasPermission = status.isGranted;
-      } else {
-        var status = await permission.request();
-        hasPermission = status.isGranted;
-      }
-    }
-
-    if (hasPermission) {
-      var image = await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-      if (image?.path != null) {
-        final bytes = await File(image!.path).readAsBytes();
-        if (!mounted) return;
-        final croppedBytes = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ImageCropScreen(
-              imageBytes: bytes,
-              aspectRatio: aspectRatio,
-              title: title,
-            ),
+    // Use ImagePicker directly - it uses Photo Picker on Android 13+ (no permission needed)
+    // and handles older Android versions internally
+    var image = await ImagePicker.platform.pickImage(source: ImageSource.gallery);
+    if (image?.path != null) {
+      final bytes = await File(image!.path).readAsBytes();
+      if (!mounted) return;
+      final croppedBytes = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ImageCropScreen(
+            imageBytes: bytes,
+            aspectRatio: aspectRatio,
+            title: title,
           ),
-        );
-        if (croppedBytes != null) {
-          final tempDir = await getTemporaryDirectory();
-          final file = await File('${tempDir.path}/cropped_${DateTime.now().millisecondsSinceEpoch}.jpg').create();
-          await file.writeAsBytes(croppedBytes);
-          onSelect(file);
-        }
-      }
-    } else {
-      AppUtils.openAppSettingsPermissionDialog(
-        ctxx: context,
-        msg: permissionMsg,
+        ),
       );
+      if (croppedBytes != null) {
+        final tempDir = await getTemporaryDirectory();
+        final file = await File('${tempDir.path}/cropped_${DateTime.now().millisecondsSinceEpoch}.jpg').create();
+        await file.writeAsBytes(croppedBytes);
+        onSelect(file);
+      }
     }
   }
 
   Future getImage() async {
-    final androidSdk = Platform.isAndroid ? (await deviceInfo.androidInfo).version.sdkInt : 0;
-    final perm = Platform.isIOS ? Permission.photos : (androidSdk > 32 ? Permission.photos : Permission.storage);
-    final msg = Platform.isIOS ? 
-        "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Photos' and enable access for our app" :
-        (androidSdk > 32 ? 
-            "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Photos' and enable access for our app" :
-            "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Storage' and enable access for our app");
-            
     await _pickAndCropImage(
       aspectRatio: 3 / 4,
       title: "Crop Profile Photo",
@@ -291,46 +258,16 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen>
           _image = file;
         });
       },
-      permission: perm,
-      permissionMsg: msg,
     );
   }
 
   Future getCompanyLogo() async {
-    final androidSdk = Platform.isAndroid ? (await deviceInfo.androidInfo).version.sdkInt : 0;
-    final perm = Platform.isIOS ? Permission.photos : (androidSdk > 32 ? Permission.photos : Permission.storage);
-    final msg = Platform.isIOS ? 
-        "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Photos' and enable access for our app" :
-        (androidSdk > 32 ? 
-            "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Photos' and enable access for our app" :
-            "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Storage' and enable access for our app");
-            
-    bool hasPermission = false;
-    if (Platform.isIOS) {
-      var status = await perm.request();
-      hasPermission = !status.isDenied && !status.isPermanentlyDenied;
-    } else {
-      if (androidSdk > 32) {
-        var status = await Permission.photos.request();
-        hasPermission = status.isGranted;
-      } else {
-        var status = await perm.request();
-        hasPermission = status.isGranted;
-      }
-    }
-
-    if (hasPermission) {
-      var image = await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-      if (image?.path != null) {
-        setState(() {
-          _companyLogo = File(image!.path);
-        });
-      }
-    } else {
-      AppUtils.openAppSettingsPermissionDialog(
-        ctxx: context,
-        msg: msg,
-      );
+    // Use ImagePicker directly - it uses Photo Picker on Android 13+ (no permission needed)
+    var image = await ImagePicker.platform.pickImage(source: ImageSource.gallery);
+    if (image?.path != null) {
+      setState(() {
+        _companyLogo = File(image!.path);
+      });
     }
   }
 

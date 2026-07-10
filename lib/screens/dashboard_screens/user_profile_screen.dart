@@ -2,10 +2,8 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:tapzy/core/common/glass_container.dart';
 import 'package:tapzy/core/constants/appColors.dart';
@@ -28,7 +26,6 @@ class UserProfileScreen extends StatefulWidget {
 class _UserProfileScreenState extends State<UserProfileScreen> {
   File? _image;
   var imageFull;
-  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
 
   TextEditingController firstNameController = TextEditingController();
   TextEditingController lastNameController = TextEditingController();
@@ -48,54 +45,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> getImage() async {
-    if (Platform.isIOS) {
-      var status1 = await Permission.photos.request();
-      if (status1.isDenied || status1.isPermanentlyDenied) {
-        AppUtils.openAppSettingsPermissionDialog(
-          ctxx: context,
-          msg:
-              "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Photos' and enable access for our app",
-        );
-      } else {
-        imageFull =
-            await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-        if (imageFull?.path != null) {
-          setState(() => _image = File(imageFull?.path ?? ''));
-        }
-      }
-    } else {
-      final deviceInformation = await deviceInfo.androidInfo;
-      if (deviceInformation.version.sdkInt > 32) {
-        var status = await Permission.photos.request();
-        if (status.isGranted) {
-          imageFull =
-              await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-          if (imageFull?.path != null) {
-            setState(() => _image = File(imageFull?.path ?? ''));
-          }
-        } else {
-          AppUtils.openAppSettingsPermissionDialog(
-            ctxx: context,
-            msg:
-                "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Photos' and enable access for our app",
-          );
-        }
-      } else {
-        var status1 = await Permission.storage.request();
-        if (status1.isGranted) {
-          imageFull =
-              await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-          if (imageFull?.path != null) {
-            setState(() => _image = File(imageFull?.path ?? ''));
-          }
-        } else {
-          AppUtils.openAppSettingsPermissionDialog(
-            ctxx: context,
-            msg:
-                "To access your photos, please go to your device's settings, find 'Privacy' or 'Permissions' locate 'Storage' and enable access for our app",
-          );
-        }
-      }
+    // Use ImagePicker directly - it uses Photo Picker on Android 13+ (no permission needed)
+    // and handles older Android versions internally
+    imageFull = await ImagePicker.platform.pickImage(source: ImageSource.gallery);
+    if (imageFull?.path != null) {
+      setState(() => _image = File(imageFull?.path ?? ''));
     }
   }
 
